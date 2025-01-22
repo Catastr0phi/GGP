@@ -10,6 +10,7 @@ Index of this file:
 // [SECTION] Tables: Main code
 // [SECTION] Tables: Simple accessors
 // [SECTION] Tables: Row changes
+// [SECTION] Tables: Columns changes
 // [SECTION] Tables: Columns width management
 // [SECTION] Tables: Drawing
 // [SECTION] Tables: Sorting
