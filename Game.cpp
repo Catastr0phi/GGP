@@ -64,6 +64,25 @@ void Game::Initialize()
 		//    these calls will need to happen multiple times per frame
 		Graphics::Context->VSSetShader(vertexShader.Get(), 0, 0);
 		Graphics::Context->PSSetShader(pixelShader.Get(), 0, 0);
+
+		// Create constant buffer
+
+		// Make buffer size a multiple of 16
+		unsigned int bufferSize = sizeof(VertexShaderData);
+		bufferSize = (bufferSize + 15) / 16 * 16;
+
+		D3D11_BUFFER_DESC cbDesc{};
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.ByteWidth = bufferSize;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+
+		Graphics::Device->CreateBuffer(&cbDesc, 0, constantBuffer.GetAddressOf());
+
+		// Bind constant buffer
+		Graphics::Context->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
 	}
 
 	// Initialize ImGui itself & platform/renderer backends
@@ -244,10 +263,10 @@ void Game::CreateGeometry()
 		// Vertices are adjusted based on loop index
 		Vertex diamondVertices[]
 		{
-			{ XMFLOAT3(+1.0f - ((i % 11)/5.0f), +1.1f - (floorf(i / 11.0f) / 5.0f), +0.0f), blue},
-			{ XMFLOAT3(+1.1f - ((i % 11)/5.0f), +1.0f - (floorf(i / 11.0f) / 5.0f), +0.0f), red},
-			{ XMFLOAT3(+1.0f - ((i % 11)/5.0f), +0.9f - (floorf(i / 11.0f) / 5.0f), +0.0f), blue},
-			{ XMFLOAT3(+0.9f - ((i % 11)/5.0f), +1.0f - (floorf(i / 11.0f) / 5.0f), +0.0f), red},
+			{ XMFLOAT3(+1.0f - ((i % 11)/5.0f), +1.1f - ((i / 11) / 5.0f), +0.0f), blue},
+			{ XMFLOAT3(+1.1f - ((i % 11)/5.0f), +1.0f - ((i / 11) / 5.0f), +0.0f), red},
+			{ XMFLOAT3(+1.0f - ((i % 11)/5.0f), +0.9f - ((i / 11) / 5.0f), +0.0f), blue},
+			{ XMFLOAT3(+0.9f - ((i % 11)/5.0f), +1.0f - ((i / 11) / 5.0f), +0.0f), red},
 		};
 
 		// Indices always the same
@@ -374,6 +393,32 @@ void Game::Draw(float deltaTime, float totalTime)
 		Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	color);
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
+
+	// Send data to GPU from constant buffer
+
+	static float x = 0.0f;
+	x += deltaTime;
+	
+	// Collect data locally
+	VertexShaderData dataToCopy{};
+	dataToCopy.tint = XMFLOAT4(0.0f, 0.0f, x/2, 1.0f);
+	dataToCopy.offset = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+	// Copy data to GPU
+
+	// Map the buffer
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	Graphics::Context->Map(
+		constantBuffer.Get(),
+		0,
+		D3D11_MAP_WRITE_DISCARD,
+		0,
+		&mapped);
+
+	memcpy(mapped.pData, &dataToCopy, sizeof(VertexShaderData));
+
+	// Unmap when done
+	Graphics::Context->Unmap(constantBuffer.Get(), 0);
 
 	// DRAW geometry
 	// - These steps are generally repeated for EACH object you draw

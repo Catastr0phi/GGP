@@ -2,6 +2,16 @@
 
 #include <d3d11.h>
 #include <wrl/client.h>
+#include <vector>
+#include <memory>
+#include <DirectXMath.h>
+
+struct VertexShaderData 
+{
+	DirectX::XMFLOAT4 tint;
+	DirectX::XMFLOAT3 offset;
+
+};
 
 class Game
 {
@@ -33,5 +43,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
+
+	Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
 };
 
