@@ -312,7 +312,7 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 	ImGui::Begin("Inspector");
 
 	// General info
-	if (ImGui::CollapsingHeader("Details")) 
+	if (ImGui::CollapsingHeader("Program Details")) 
 	{
 		// Display framerate
 		ImGui::Text("Framerate: %f fps", ImGui::GetIO().Framerate);
@@ -351,10 +351,12 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 			int indexCount = meshes[i].get()->GetIndexCount();
 
 			// Display info
-			if (ImGui::CollapsingHeader(charName)) {
+			if (ImGui::TreeNode(charName)) {
 				ImGui::Text("Triangles: %d", indexCount/3);
 				ImGui::Text("Verticies: %d", vertexCount);
 				ImGui::Text("Indices: %d", indexCount);
+
+				ImGui::TreePop();
 			}
 		}
 	}
