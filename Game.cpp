@@ -4,7 +4,6 @@
 #include "Input.h"
 #include "PathHelpers.h"
 #include "Window.h"
-#include "Mesh.h"
 #include <memory>
 #include <vector>
 #include <string>
@@ -23,14 +22,6 @@
 
 // For the DirectX Math library
 using namespace DirectX;
-
-// Window color
-float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
-
-bool imGuiDemoVisible;
-
-// Mesh vector
-std::vector<std::shared_ptr<Mesh>> meshes;
 
 // --------------------------------------------------------
 // Called once per program, after the window and graphics API
@@ -94,6 +85,12 @@ void Game::Initialize()
 	ImGui::StyleColorsDark();
 	//ImGui::StyleColorsLight();
 	//ImGui::StyleColorsClassic();
+
+	// Set initial background color
+	color[0] = 0.4f;
+	color[1] = 0.6f;
+	color[2] = 0.75f;
+	color[3] = 0.0f;
 }
 
 
@@ -203,7 +200,6 @@ void Game::CreateGeometry()
 	std::shared_ptr<Mesh> rectangle;
 	std::shared_ptr<Mesh> star;
 
-
 	// Set up the vertices of the triangle 
 	Vertex triangleVertices[] =
 	{
@@ -289,7 +285,7 @@ void Game::OnResize()
 }
 
 
-void UpdateImGui(float deltaTime) {
+void Game::UpdateImGui(float deltaTime) {
 	// Feed fresh data to ImGui
 	ImGuiIO& io = ImGui::GetIO();
 	io.DeltaTime = deltaTime;
@@ -310,7 +306,7 @@ void UpdateImGui(float deltaTime) {
 
 // Custom inspector window
 // Contains debug info and some general settings
-void UpdateInspector(float deltaTime, float totalTime) {
+void Game::UpdateInspector(float deltaTime, float totalTime) {
 
 	// Create a new window
 	ImGui::Begin("Inspector");

@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <DirectXMath.h>
+#include "Mesh.h"
 
 struct VertexShaderData 
 {
@@ -34,6 +35,10 @@ private:
 	void LoadShaders();
 	void CreateGeometry();
 
+	// ImGui helper functions
+	void UpdateImGui(float deltaTime);
+	void UpdateInspector(float deltaTime, float totalTime);
+
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
 	//     Component Object Model, which DirectX objects do
@@ -45,5 +50,10 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
+
+	// Additional variables
+	bool imGuiDemoVisible;
+	float color[4];
+	std::vector<std::shared_ptr<Mesh>> meshes;
 };
 
