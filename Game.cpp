@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include "BufferStructs.h"
 
 #include <DirectXMath.h>
 
@@ -91,6 +92,11 @@ void Game::Initialize()
 	color[1] = 0.6f;
 	color[2] = 0.75f;
 	color[3] = 0.0f;
+
+	// Initial tint, all set to 1
+	for (int i = 0; i < 4; i++) {
+		tint[i] = 1.0f;
+	}
 }
 
 
@@ -241,9 +247,9 @@ void Game::CreateGeometry()
 
 
 	// Instantiate meshes
-	triangle = std::make_shared<Mesh>(triangleVertices, triangleIndices, sizeof(triangleVertices) / sizeof(triangleVertices[0]), sizeof(triangleIndices) / sizeof(triangleIndices[0]), "Triangle");
-	rectangle = std::make_shared<Mesh>(rectangleVertices, rectangleIndices, sizeof(rectangleVertices) / sizeof(rectangleVertices[0]), sizeof(rectangleIndices) / sizeof(rectangleIndices[0]), "Rectangle");
-	star = std::make_shared<Mesh>(starVertices, starIndices, sizeof(starVertices) / sizeof(starVertices[0]), sizeof(starIndices) / sizeof(starIndices[0]), "Star");
+	triangle = std::make_shared<Mesh>(triangleVertices, triangleIndices, (int)(sizeof(triangleVertices) / sizeof(triangleVertices[0])), (int)(sizeof(triangleIndices) / sizeof(triangleIndices[0])), "Triangle");
+	rectangle = std::make_shared<Mesh>(rectangleVertices, rectangleIndices, (int)(sizeof(rectangleVertices) / sizeof(rectangleVertices[0])), (int)(sizeof(rectangleIndices) / sizeof(rectangleIndices[0])), "Rectangle");
+	star = std::make_shared<Mesh>(starVertices, starIndices, (int)(sizeof(starVertices) / sizeof(starVertices[0])), (int)(sizeof(starIndices) / sizeof(starIndices[0])), "Star");
 
 	// Push meshes to vector
 	meshes.push_back(triangle);
@@ -269,7 +275,7 @@ void Game::CreateGeometry()
 		unsigned int diamondIndices[] = { 0,1,2,0,2,3 };
 
 		// Make and push mesh
-		diamond = std::make_shared<Mesh>(diamondVertices, diamondIndices, sizeof(diamondVertices) / sizeof(diamondVertices[0]), sizeof(diamondIndices) / sizeof(diamondIndices[0]), "Diamond " + std::to_string(i));
+		diamond = std::make_shared<Mesh>(diamondVertices, diamondIndices, (int)(sizeof(diamondVertices) / sizeof(diamondVertices[0])), (int)(sizeof(diamondIndices) / sizeof(diamondIndices[0])), "Diamond " + std::to_string(i));
 		meshes.push_back(diamond);
 	}
 
@@ -323,9 +329,6 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 		// Display elapsed time
 		ImGui::Text("Elapsed time: %f", totalTime);
 
-		// Color editor
-		ImGui::ColorEdit4("RGBA color editor", color);
-
 		// Button to display demo window
 		if (ImGui::Button("Toggle Demo Window")) {
 			imGuiDemoVisible = !imGuiDemoVisible;
@@ -361,6 +364,17 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 		}
 	}
 
+	// Color and offset editors
+	if (ImGui::CollapsingHeader("Editors"))
+	{
+		// Color editors
+		ImGui::ColorEdit4("Background color", color);
+		ImGui::ColorEdit4("Tint color", tint);
+
+		// Offset editors
+		ImGui::SliderFloat3("Offset", offset, -2.0f, 2.0f);
+	}
+
 	ImGui::End();
 }
 
@@ -393,14 +407,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	// Send data to GPU from constant buffer
-
-	static float x = 0.0f;
-	x += deltaTime;
 	
 	// Collect data locally
 	VertexShaderData dataToCopy{};
-	dataToCopy.tint = XMFLOAT4(0.0f, 0.0f, x/2, 1.0f);
-	dataToCopy.offset = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	dataToCopy.tint = XMFLOAT4(tint[0], tint[1], tint[2], tint[3]);
+	dataToCopy.offset = XMFLOAT3(offset[0], offset[1], offset[2]);
 
 	// Copy data to GPU
 

@@ -7,13 +7,6 @@
 #include <DirectXMath.h>
 #include "Mesh.h"
 
-struct VertexShaderData 
-{
-	DirectX::XMFLOAT4 tint;
-	DirectX::XMFLOAT3 offset;
-
-};
-
 class Game
 {
 public:
@@ -50,6 +43,10 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
+
+	// Constant buffer variables
+	float tint[4];
+	float offset[3];
 
 	// Additional variables
 	bool imGuiDemoVisible;
