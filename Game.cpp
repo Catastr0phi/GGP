@@ -407,11 +407,18 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	// Send data to GPU from constant buffer
+	XMMATRIX rotZMat = XMMatrixRotationZ(totalTime);
+	XMMATRIX offsetMat = XMMatrixTranslation(offset[0], offset[1], offset[2]);
+
+	XMMATRIX multiplied = XMMatrixMultiply(rotZMat, offsetMat);
+
+	XMFLOAT4X4 transform;
+	XMStoreFloat4x4(&transform, multiplied);
 	
 	// Collect data locally
 	VertexShaderData dataToCopy{};
 	dataToCopy.tint = XMFLOAT4(tint[0], tint[1], tint[2], tint[3]);
-	dataToCopy.offset = XMFLOAT3(offset[0], offset[1], offset[2]);
+	dataToCopy.transform = transform;
 
 	// Copy data to GPU
 
