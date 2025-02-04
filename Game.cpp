@@ -247,9 +247,9 @@ void Game::CreateGeometry()
 
 
 	// Instantiate meshes
-	triangle = std::make_shared<Mesh>(triangleVertices, triangleIndices, (int)(sizeof(triangleVertices) / sizeof(triangleVertices[0])), (int)(sizeof(triangleIndices) / sizeof(triangleIndices[0])), "Triangle");
-	rectangle = std::make_shared<Mesh>(rectangleVertices, rectangleIndices, (int)(sizeof(rectangleVertices) / sizeof(rectangleVertices[0])), (int)(sizeof(rectangleIndices) / sizeof(rectangleIndices[0])), "Rectangle");
-	star = std::make_shared<Mesh>(starVertices, starIndices, (int)(sizeof(starVertices) / sizeof(starVertices[0])), (int)(sizeof(starIndices) / sizeof(starIndices[0])), "Star");
+	triangle = std::make_shared<Mesh>(triangleVertices, triangleIndices, ARRAYSIZE(triangleVertices), ARRAYSIZE(triangleIndices), "Triangle");
+	rectangle = std::make_shared<Mesh>(rectangleVertices, rectangleIndices, ARRAYSIZE(rectangleVertices), ARRAYSIZE(triangleIndices), "Rectangle");
+	star = std::make_shared<Mesh>(starVertices, starIndices,ARRAYSIZE(starVertices), ARRAYSIZE(starIndices), "Star");
 
 	// Push meshes to vector
 	meshes.push_back(triangle);
@@ -275,7 +275,7 @@ void Game::CreateGeometry()
 		unsigned int diamondIndices[] = { 0,1,2,0,2,3 };
 
 		// Make and push mesh
-		diamond = std::make_shared<Mesh>(diamondVertices, diamondIndices, (int)(sizeof(diamondVertices) / sizeof(diamondVertices[0])), (int)(sizeof(diamondIndices) / sizeof(diamondIndices[0])), "Diamond " + std::to_string(i));
+		diamond = std::make_shared<Mesh>(diamondVertices, diamondIndices, ARRAYSIZE(diamondVertices), ARRAYSIZE(diamondIndices), "Diamond " + std::to_string(i));
 		meshes.push_back(diamond);
 	}
 
