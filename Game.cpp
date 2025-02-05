@@ -409,8 +409,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Send data to GPU from constant buffer
 	XMMATRIX rotZMat = XMMatrixRotationZ(totalTime);
 	XMMATRIX offsetMat = XMMatrixTranslation(offset[0], offset[1], offset[2]);
+	XMMATRIX scaleMat = XMMatrixScaling(sin(totalTime), sin(totalTime), sin(totalTime));
 
-	XMMATRIX multiplied = XMMatrixMultiply(rotZMat, offsetMat);
+	XMMATRIX multiplied = XMMatrixMultiply(rotZMat, XMMatrixMultiply(offsetMat, scaleMat));
 
 	XMFLOAT4X4 transform;
 	XMStoreFloat4x4(&transform, multiplied);
