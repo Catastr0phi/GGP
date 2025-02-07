@@ -279,6 +279,8 @@ void Game::CreateGeometry()
 		meshes.push_back(diamond);
 	}
 
+	GameEntity test = GameEntity(star);
+	entities.push_back(test);
 }
 
 
@@ -406,45 +408,42 @@ void Game::Draw(float deltaTime, float totalTime)
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	// Send data to GPU from constant buffer
-	XMMATRIX rotZMat = XMMatrixRotationZ(totalTime);
-	XMMATRIX offsetMat = XMMatrixTranslation(offset[0], offset[1], offset[2]);
-	XMMATRIX scaleMat = XMMatrixScaling(sin(totalTime), sin(totalTime), sin(totalTime));
+	//// Send data to GPU from constant buffer
+	//XMMATRIX offsetMat = XMMatrixTranslation(offset[0], offset[1], offset[2]);
+	//XMFLOAT4X4 transform;
+	//XMStoreFloat4x4(&transform, offsetMat);
+	//
+	//// Collect data locally
+	//VertexShaderData dataToCopy{};
+	//dataToCopy.tint = XMFLOAT4(tint[0], tint[1], tint[2], tint[3]);
+	//dataToCopy.world = transform;
 
-	XMMATRIX multiplied = XMMatrixMultiply(rotZMat, XMMatrixMultiply(offsetMat, scaleMat));
+	//// Copy data to GPU
 
-	XMFLOAT4X4 transform;
-	XMStoreFloat4x4(&transform, multiplied);
-	
-	// Collect data locally
-	VertexShaderData dataToCopy{};
-	dataToCopy.tint = XMFLOAT4(tint[0], tint[1], tint[2], tint[3]);
-	dataToCopy.transform = transform;
+	//// Map the buffer
+	//D3D11_MAPPED_SUBRESOURCE mapped{};
+	//Graphics::Context->Map(
+	//	constantBuffer.Get(),
+	//	0,
+	//	D3D11_MAP_WRITE_DISCARD,
+	//	0,
+	//	&mapped);
 
-	// Copy data to GPU
+	//memcpy(mapped.pData, &dataToCopy, sizeof(VertexShaderData));
 
-	// Map the buffer
-	D3D11_MAPPED_SUBRESOURCE mapped{};
-	Graphics::Context->Map(
-		constantBuffer.Get(),
-		0,
-		D3D11_MAP_WRITE_DISCARD,
-		0,
-		&mapped);
-
-	memcpy(mapped.pData, &dataToCopy, sizeof(VertexShaderData));
-
-	// Unmap when done
-	Graphics::Context->Unmap(constantBuffer.Get(), 0);
+	//// Unmap when done
+	//Graphics::Context->Unmap(constantBuffer.Get(), 0);
 
 	// DRAW geometry
 	// - These steps are generally repeated for EACH object you draw
 	// - Other Direct3D calls will also be necessary to do more complex things
 	{
 		for (int i = 0; i < meshes.size(); i++) {
-			meshes[i].get()->Draw();
+
 		}
 	}
+	
+	entities[0].Draw(constantBuffer, offset, tint);
 
 	ImGui::Render(); // Turns this frame’s UI into renderable triangles
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); // Draws it to the screen

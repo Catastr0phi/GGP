@@ -6,6 +6,7 @@
 #include <memory>
 #include <DirectXMath.h>
 #include "Mesh.h"
+#include "GameEntity.h"
 
 class Game
 {
@@ -52,5 +53,7 @@ private:
 	bool imGuiDemoVisible;
 	float color[4];
 	std::vector<std::shared_ptr<Mesh>> meshes;
+
+	std::vector<GameEntity> entities;
 };
 
