@@ -16,6 +16,10 @@ std::shared_ptr<Transform> GameEntity::GetTransform() { return transform; }
 
 void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer, float* universalOffset, float* universalTint)
 {
+	// Rebind constant buffer
+	// Shouldn't matter now, but relevant if we ever rebind the buffer elsewhere
+	Graphics::Context->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
+
 	// Store data locally
 	VertexShaderData dataToCopy{};
 	dataToCopy.tint = XMFLOAT4(universalTint[0], universalTint[1], universalTint[2], universalTint[3]);

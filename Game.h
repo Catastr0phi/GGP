@@ -53,7 +53,6 @@ private:
 	bool imGuiDemoVisible;
 	float color[4];
 	std::vector<std::shared_ptr<Mesh>> meshes;
-
 	std::vector<GameEntity> entities;
 };
 

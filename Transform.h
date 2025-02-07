@@ -12,6 +12,9 @@ private:
 	DirectX::XMFLOAT4X4 world;
 	DirectX::XMFLOAT4X4 worldInverseTranspose;
 
+	// "Dirty" bool to check for changes
+	bool dirty;
+
 // Public data
 public:
 	// Constructor

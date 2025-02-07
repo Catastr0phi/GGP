@@ -220,10 +220,10 @@ void Game::CreateGeometry()
 	// Set up vertices for a rectangle
 	Vertex rectangleVertices[]
 	{
-		{ XMFLOAT3(+0.6f, +0.6f, +0.0f), black },
-		{ XMFLOAT3(+0.6f, +0.9f, +0.0f), white },
-		{ XMFLOAT3(+0.9f, +0.9f, +0.0f), black },
-		{ XMFLOAT3(+0.9f, +0.6f, +0.0f), white },
+		{ XMFLOAT3(-0.2f, -0.2f, +0.0f), black },
+		{ XMFLOAT3(-0.2f, +0.2f, +0.0f), white },
+		{ XMFLOAT3(+0.2f, +0.2f, +0.0f), black },
+		{ XMFLOAT3(+0.2f, -0.2f, +0.0f), white },
 	};
 
 	// Set up indicies for a rectangle
@@ -247,40 +247,46 @@ void Game::CreateGeometry()
 
 
 	// Instantiate meshes
-	triangle = std::make_shared<Mesh>(triangleVertices, triangleIndices, ARRAYSIZE(triangleVertices), ARRAYSIZE(triangleIndices), "Triangle");
-	rectangle = std::make_shared<Mesh>(rectangleVertices, rectangleIndices, ARRAYSIZE(rectangleVertices), ARRAYSIZE(triangleIndices), "Rectangle");
-	star = std::make_shared<Mesh>(starVertices, starIndices,ARRAYSIZE(starVertices), ARRAYSIZE(starIndices), "Star");
+	triangle = std::make_shared<Mesh>(triangleVertices, triangleIndices, (int)ARRAYSIZE(triangleVertices), (int)ARRAYSIZE(triangleIndices), "Triangle");
+	rectangle = std::make_shared<Mesh>(rectangleVertices, rectangleIndices, (int)ARRAYSIZE(rectangleVertices), (int)ARRAYSIZE(rectangleIndices), "Rectangle");
+	star = std::make_shared<Mesh>(starVertices, starIndices, (int)ARRAYSIZE(starVertices), (int)ARRAYSIZE(starIndices), "Star");
 
 	// Push meshes to vector
 	meshes.push_back(triangle);
 	meshes.push_back(rectangle);
 	meshes.push_back(star);
 
+	// Dont need diamond background code anymore, but keeping it for reference if I want to recreate this again
+
 	// Creates a diamond background
 	// I really just did this to see if I could
 	// TODO: If I want to mess with this further, maybe make it support custom dimensions instead of being hardcoded to 11x11
-	for (int i = 0; i < 121; i++) {
-		std::shared_ptr<Mesh> diamond;
+	//for (int i = 0; i < 121; i++) {
+	//	std::shared_ptr<Mesh> diamond;
 
-		// Vertices are adjusted based on loop index
-		Vertex diamondVertices[]
-		{
-			{ XMFLOAT3(+1.0f - ((i % 11)/5.0f), +1.1f - ((i / 11) / 5.0f), +0.0f), blue},
-			{ XMFLOAT3(+1.1f - ((i % 11)/5.0f), +1.0f - ((i / 11) / 5.0f), +0.0f), red},
-			{ XMFLOAT3(+1.0f - ((i % 11)/5.0f), +0.9f - ((i / 11) / 5.0f), +0.0f), blue},
-			{ XMFLOAT3(+0.9f - ((i % 11)/5.0f), +1.0f - ((i / 11) / 5.0f), +0.0f), red},
-		};
+	//	// Vertices are adjusted based on loop index
+	//	Vertex diamondVertices[]
+	//	{
+	//		{ XMFLOAT3(+1.0f - ((i % 11)/5.0f), +1.1f - ((i / 11) / 5.0f), +0.0f), blue},
+	//		{ XMFLOAT3(+1.1f - ((i % 11)/5.0f), +1.0f - ((i / 11) / 5.0f), +0.0f), red},
+	//		{ XMFLOAT3(+1.0f - ((i % 11)/5.0f), +0.9f - ((i / 11) / 5.0f), +0.0f), blue},
+	//		{ XMFLOAT3(+0.9f - ((i % 11)/5.0f), +1.0f - ((i / 11) / 5.0f), +0.0f), red},
+	//	};
 
-		// Indices always the same
-		unsigned int diamondIndices[] = { 0,1,2,0,2,3 };
+	//	// Indices always the same
+	//	unsigned int diamondIndices[] = { 0,1,2,0,2,3 };
 
-		// Make and push mesh
-		diamond = std::make_shared<Mesh>(diamondVertices, diamondIndices, ARRAYSIZE(diamondVertices), ARRAYSIZE(diamondIndices), "Diamond " + std::to_string(i));
-		meshes.push_back(diamond);
-	}
+	//	// Make and push mesh
+	//	diamond = std::make_shared<Mesh>(diamondVertices, diamondIndices, ARRAYSIZE(diamondVertices), ARRAYSIZE(diamondIndices), "Diamond " + std::to_string(i));
+	//	meshes.push_back(diamond);
+	//}
 
-	GameEntity test = GameEntity(star);
-	entities.push_back(test);
+	// Make entities from meshes
+	entities.push_back(GameEntity(star));
+	entities.push_back(GameEntity(star));
+	entities.push_back(GameEntity(star));
+	entities.push_back(GameEntity(triangle));
+	entities.push_back(GameEntity(rectangle));
 }
 
 
@@ -392,6 +398,20 @@ void Game::Update(float deltaTime, float totalTime)
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
 		Window::Quit();
+
+
+	// Move entities!
+
+	// Have some stars moving around
+	entities[0].GetTransform().get()->MoveAbsolute(sinf(totalTime) * deltaTime, 0, 0);
+	entities[1].GetTransform().get()->MoveAbsolute(0, -sinf(totalTime) * deltaTime, 0);
+
+	// Rotate the triangle
+	entities[3].GetTransform().get()->Rotate(0, 0, 1 * deltaTime);
+
+	// Move rectangle to corner and make it pulse
+	entities[4].GetTransform().get()->SetPosition(0.5, 0.5, 0);
+	entities[4].GetTransform().get()->Scale(sinf(totalTime) * deltaTime, sinf(totalTime) * deltaTime, 0);
 }
 
 
@@ -408,42 +428,14 @@ void Game::Draw(float deltaTime, float totalTime)
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	//// Send data to GPU from constant buffer
-	//XMMATRIX offsetMat = XMMatrixTranslation(offset[0], offset[1], offset[2]);
-	//XMFLOAT4X4 transform;
-	//XMStoreFloat4x4(&transform, offsetMat);
-	//
-	//// Collect data locally
-	//VertexShaderData dataToCopy{};
-	//dataToCopy.tint = XMFLOAT4(tint[0], tint[1], tint[2], tint[3]);
-	//dataToCopy.world = transform;
-
-	//// Copy data to GPU
-
-	//// Map the buffer
-	//D3D11_MAPPED_SUBRESOURCE mapped{};
-	//Graphics::Context->Map(
-	//	constantBuffer.Get(),
-	//	0,
-	//	D3D11_MAP_WRITE_DISCARD,
-	//	0,
-	//	&mapped);
-
-	//memcpy(mapped.pData, &dataToCopy, sizeof(VertexShaderData));
-
-	//// Unmap when done
-	//Graphics::Context->Unmap(constantBuffer.Get(), 0);
-
 	// DRAW geometry
 	// - These steps are generally repeated for EACH object you draw
 	// - Other Direct3D calls will also be necessary to do more complex things
 	{
-		for (int i = 0; i < meshes.size(); i++) {
-
+		for (int i = 0; i < entities.size(); i++) {
+			entities[i].Draw(constantBuffer, offset, tint);
 		}
 	}
-	
-	entities[0].Draw(constantBuffer, offset, tint);
 
 	ImGui::Render(); // Turns this frame’s UI into renderable triangles
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); // Draws it to the screen
