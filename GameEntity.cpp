@@ -25,6 +25,17 @@ void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer, float
 	dataToCopy.tint = XMFLOAT4(universalTint[0], universalTint[1], universalTint[2], universalTint[3]);
 	dataToCopy.world = transform.get()->GetWorldMatrix();
 
+	// Code for adding the universal offset, disabled for now
+	// Doing matrix math should probably be avoided in draw
+	/*XMFLOAT4X4 world = transform.get()->GetWorldMatrix();
+	XMMATRIX worldWithOffsetMat = XMMatrixMultiply(XMLoadFloat4x4(&world),
+		XMMatrixTranslation(universalOffset[0], universalOffset[1], universalOffset[2]));
+
+	XMFLOAT4X4 worldWithOffset;
+	XMStoreFloat4x4(&worldWithOffset, worldWithOffsetMat);
+
+	dataToCopy.world = worldWithOffset;*/
+
 	// Map buffer
 	D3D11_MAPPED_SUBRESOURCE mapped{};
 	Graphics::Context->Map(

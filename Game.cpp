@@ -351,7 +351,8 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 	// Mesh details
 	if (ImGui::CollapsingHeader("Mesh info")) 
 	{
-		for (int i = 0; i < meshes.size(); i++) {
+		for (int i = 0; i < meshes.size(); i++)
+		{
 
 			// I had trouble with getting the names to display because of the use of std::string, this conversion method worked but there might be a better way
 			std::string tabName = meshes[i].get()->GetName();
@@ -362,13 +363,47 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 			int indexCount = meshes[i].get()->GetIndexCount();
 
 			// Display info
-			if (ImGui::TreeNode(charName)) {
+			if (ImGui::TreeNode(charName)) 
+			{
 				ImGui::Text("Triangles: %d", indexCount/3);
 				ImGui::Text("Verticies: %d", vertexCount);
 				ImGui::Text("Indices: %d", indexCount);
 
 				ImGui::TreePop();
 			}
+		}
+	}
+
+	if (ImGui::CollapsingHeader("Entities")) 
+	{
+		for (int i = 0; i < entities.size(); i++) 
+		{
+			// Make entity name
+			std::string nameStr = "Entity " + std::to_string(i);
+			const char* name = nameStr.c_str();
+
+			// Get position, rotation, and scale, and store them as float arrays since thats what ImGui uses
+			// temporary XMFLOAT3s made first for readability
+			XMFLOAT3 pos = entities[i].GetTransform().get()->GetPosition();
+			XMFLOAT3 rot = entities[i].GetTransform().get()->GetPitchYawRoll();
+			XMFLOAT3 scale = entities[i].GetTransform().get()->GetScale();
+			float posArray[3] = { pos.x, pos.y, pos.z };
+			float rotArray[3] = { rot.x, rot.y, rot.z };
+			float scaleArray[3] = { scale.x, scale.y, scale.z };
+
+			// Display info
+			if (ImGui::TreeNode(name)) 
+			{
+				ImGui::SliderFloat3("Position", posArray, -2.0f, 2.0f);
+				ImGui::SliderFloat3("Rotation", rotArray, -4.0f, 4.0f);
+				ImGui::SliderFloat3("Scale", scaleArray, 0.0f, 2.0f);
+				ImGui::TreePop();
+			}
+
+			// Set new values
+			entities[i].GetTransform().get()->SetPosition(posArray[0], posArray[1], posArray[2]);
+			entities[i].GetTransform().get()->SetRotation(rotArray[0], rotArray[1], rotArray[2]);
+			entities[i].GetTransform().get()->SetScale(scaleArray[0], scaleArray[1], scaleArray[2]);
 		}
 	}
 
