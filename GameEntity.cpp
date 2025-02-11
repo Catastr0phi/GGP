@@ -14,7 +14,7 @@ std::shared_ptr<Mesh> GameEntity::GetMesh() { return mesh; }
 
 std::shared_ptr<Transform> GameEntity::GetTransform() { return transform; }
 
-void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer, float* universalOffset, float* universalTint)
+void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer, float* offset, float* tint)
 {
 	// Rebind constant buffer
 	// Shouldn't matter now, but relevant if we ever rebind the buffer elsewhere
@@ -22,19 +22,18 @@ void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer, float
 
 	// Store data locally
 	VertexShaderData dataToCopy{};
-	dataToCopy.tint = XMFLOAT4(universalTint[0], universalTint[1], universalTint[2], universalTint[3]);
-	dataToCopy.world = transform.get()->GetWorldMatrix();
+	dataToCopy.tint = XMFLOAT4(tint[0], tint[1], tint[2], tint[3]);
 
-	// Code for adding the universal offset, disabled for now
-	// Doing matrix math should probably be avoided in draw
-	/*XMFLOAT4X4 world = transform.get()->GetWorldMatrix();
+	// Adding the offset
+	// Theres probably a smarter solution that doesn't involve doing this in draw(), but this will likely be removed soon anyway
+	XMFLOAT4X4 world = transform.get()->GetWorldMatrix();
 	XMMATRIX worldWithOffsetMat = XMMatrixMultiply(XMLoadFloat4x4(&world),
-		XMMatrixTranslation(universalOffset[0], universalOffset[1], universalOffset[2]));
+		XMMatrixTranslation(offset[0], offset[1], offset[2]));
 
 	XMFLOAT4X4 worldWithOffset;
 	XMStoreFloat4x4(&worldWithOffset, worldWithOffsetMat);
 
-	dataToCopy.world = worldWithOffset;*/
+	dataToCopy.world = worldWithOffset;
 
 	// Map buffer
 	D3D11_MAPPED_SUBRESOURCE mapped{};

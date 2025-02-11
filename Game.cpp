@@ -447,6 +447,7 @@ void Game::Update(float deltaTime, float totalTime)
 	// Move rectangle to corner and make it pulse
 	entities[4].GetTransform().get()->SetPosition(0.5, 0.5, 0);
 	entities[4].GetTransform().get()->Scale(sinf(totalTime) * deltaTime, sinf(totalTime) * deltaTime, 0);
+	entities[4].GetTransform().get()->Scale(sinf(totalTime) * deltaTime, sinf(totalTime) * deltaTime, 0);
 }
 
 
