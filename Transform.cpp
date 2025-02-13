@@ -99,8 +99,30 @@ void Transform::MoveAbsolute(float x, float y, float z)
 
 void Transform::MoveAbsolute(DirectX::XMFLOAT3 offset)
 {
-	position = XMFLOAT3(position.x + offset.x, position.y + offset.y, position.z + offset.z);
+	MoveAbsolute(offset.x, offset.y, offset.z);
+}
+
+void Transform::MoveRelative(float x, float y, float z) 
+{
+	// Move along local axes
+
+	// Create vector
+	XMVECTOR movement = XMVectorSet(x, y, z, 0);
+
+	// Create quaternion based on p/y/r
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
+
+	// Rotate vector
+	XMVECTOR dir = XMVector3Rotate(movement, rotQuat);
+
+	// Add direction
+	XMStoreFloat3(&position, XMLoadFloat3(&position) + dir);
 	dirty = true;
+}
+
+void Transform::MoveRelative(DirectX::XMFLOAT3 offset)
+{
+	MoveRelative(offset.x, offset.y, offset.z);
 }
 
 void Transform::Rotate(float pitch, float yaw, float roll)
@@ -113,8 +135,7 @@ void Transform::Rotate(float pitch, float yaw, float roll)
 
 void Transform::Rotate(DirectX::XMFLOAT3 rotation)
 {
-	this->rotation = XMFLOAT3(this->rotation.x + rotation.x, this->rotation.y + rotation.y, this->rotation.z + rotation.z);
-	dirty = true;
+	Rotate(rotation.x, rotation.y, rotation.z);
 }
 
 void Transform::Scale(float x, float y, float z)
@@ -127,6 +148,5 @@ void Transform::Scale(float x, float y, float z)
 
 void Transform::Scale(DirectX::XMFLOAT3 scale)
 {
-	this->scale = XMFLOAT3(this->scale.x + scale.x, this->scale.y + scale.y, this->scale.z + scale.z);
-	dirty = true;
+	Scale(scale.x, scale.y, scale.z);
 }
