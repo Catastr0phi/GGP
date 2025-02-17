@@ -7,6 +7,7 @@
 #include <DirectXMath.h>
 #include "Mesh.h"
 #include "GameEntity.h"
+#include "Camera.h"
 
 class Game
 {
@@ -54,5 +55,6 @@ private:
 	float color[4];
 	std::vector<std::shared_ptr<Mesh>> meshes;
 	std::vector<GameEntity> entities;
+	std::shared_ptr<Camera> camera;
 };
 

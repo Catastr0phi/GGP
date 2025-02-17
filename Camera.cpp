@@ -3,13 +3,16 @@
 
 using namespace DirectX;
 
-Camera::Camera(DirectX::XMFLOAT3 pos, float moveSpeed, float lookSpeed, float fov, float aspectRatio) :
+Camera::Camera(XMFLOAT3 pos, float moveSpeed, float lookSpeed, float fov, float aspectRatio) :
     movementSpeed(moveSpeed),
     mouseLookSpeed(lookSpeed),
     fieldOfView(fov)
 {
     transform = std::make_shared<Transform>();
     transform->SetPosition(pos);
+
+    UpdateViewMatrix();
+    UpdateProjectionMatrix(aspectRatio);
 }
 
 Camera::~Camera()
@@ -20,18 +23,19 @@ void Camera::Update(float dt)
 {
     // Input
     float speed = dt * movementSpeed;
+    float lookSpeed = dt * mouseLookSpeed;
 
     if (Input::KeyDown('W')) { transform->MoveRelative(0, 0, speed); }
     if (Input::KeyDown('A')) { transform->MoveRelative(-speed, 0, 0); }
     if (Input::KeyDown('S')) { transform->MoveRelative(0, 0, -speed); }
     if (Input::KeyDown('D')) { transform->MoveRelative(speed, 0, 0); }
     if (Input::KeyDown(' ')) { transform->MoveAbsolute(0, speed, 0); }
-    if (Input::KeyDown('X')) { transform->MoveAbsolute(0, -speed, 0); }
+    if (Input::KeyDown(VK_SHIFT)) { transform->MoveAbsolute(0, -speed, 0); }
 
     if (Input::MouseLeftDown()) 
     {
-        float xRot = mouseLookSpeed * Input::GetMouseXDelta();
-        float yRot = mouseLookSpeed * Input::GetMouseYDelta();
+        float xRot = lookSpeed * Input::GetMouseXDelta();
+        float yRot = lookSpeed * Input::GetMouseYDelta();
 
         transform->Rotate(yRot, xRot, 0);
     }
@@ -42,19 +46,19 @@ void Camera::Update(float dt)
 void Camera::UpdateViewMatrix()
 {
     XMFLOAT3 pos = transform->GetPosition();
-    // didnt do these yet lol
-    // XMFLOAT3 fwd = transform->GetForward();
-    XMFLOAT3 fwd = XMFLOAT3(0, 0, 1);
+    XMFLOAT3 fwd = transform->GetForward();
     XMFLOAT3 worldUp = XMFLOAT3(0, 1, 0);
 
+    XMMATRIX view = XMMatrixLookToLH(XMLoadFloat3(&pos), XMLoadFloat3(&fwd), XMLoadFloat3(&worldUp));
 
+    XMStoreFloat4x4(&viewMat, view);
 }
 
 void Camera::UpdateProjectionMatrix(float aspectRatio)
 {
     // Function makes a projection matrix
     XMMATRIX proj = XMMatrixPerspectiveFovLH(
-        XM_PIDIV4, // fov angle in radians
+        fieldOfView, // fov angle in radians
         aspectRatio,
         0.01f,
         100);

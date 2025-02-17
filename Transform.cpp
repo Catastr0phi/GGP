@@ -21,7 +21,7 @@ void Transform::SetPosition(float x, float y, float z)
 	dirty = true;
 }
 
-void Transform::SetPosition(DirectX::XMFLOAT3 position)
+void Transform::SetPosition(XMFLOAT3 position)
 {
 	this->position = position;
 	dirty = true;
@@ -35,7 +35,7 @@ void Transform::SetRotation(float pitch, float yaw, float roll)
 	dirty = true;
 }
 
-void Transform::SetRotation(DirectX::XMFLOAT3 rotation)
+void Transform::SetRotation(XMFLOAT3 rotation)
 {
 	this->rotation = rotation;
 	dirty = true;
@@ -49,19 +49,19 @@ void Transform::SetScale(float x, float y, float z)
 	dirty = true;
 }
 
-void Transform::SetScale(DirectX::XMFLOAT3 scale)
+void Transform::SetScale(XMFLOAT3 scale)
 {
 	this->scale = scale;
 	dirty = true;
 }
 
-DirectX::XMFLOAT3 Transform::GetPosition() { return position; }
+XMFLOAT3 Transform::GetPosition() { return position; }
 
-DirectX::XMFLOAT3 Transform::GetPitchYawRoll() { return rotation; }
+XMFLOAT3 Transform::GetPitchYawRoll() { return rotation; }
 
-DirectX::XMFLOAT3 Transform::GetScale() { return scale;
+XMFLOAT3 Transform::GetScale() { return scale;
 }
-DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()
+XMFLOAT4X4 Transform::GetWorldMatrix()
 {
 	// Only remake matrix if something has changed
 	if (dirty) {
@@ -82,11 +82,62 @@ DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()
 	return world;
 }
 
-DirectX::XMFLOAT4X4 Transform::GetWorldInverseTransposeMatrix() 
+XMFLOAT4X4 Transform::GetWorldInverseTransposeMatrix() 
 { 
 	// Call world matrix function if dirty, as it will also rebuild inverse matrix
 	if (dirty) GetWorldMatrix();
 	return worldInverseTranspose; 
+}
+
+XMFLOAT3 Transform::GetUp()
+{
+	// Create up vector
+	XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+
+	// Create quaternion based on p/y/r
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
+
+	// Rotate vector
+	XMVECTOR localUpVec = XMVector3Rotate(up, rotQuat);
+
+	// Return new vector
+	XMFLOAT3 localUp;
+	XMStoreFloat3(&localUp, localUpVec);
+	return localUp;
+}
+
+XMFLOAT3 Transform::GetRight() 
+{
+	// Create right vector
+	XMVECTOR right = XMVectorSet(1, 0, 0, 0);
+
+	// Create quaternion based on p/y/r
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
+
+	// Rotate vector
+	XMVECTOR localRightVec = XMVector3Rotate(right, rotQuat);
+
+	// Return new vector
+	XMFLOAT3 localRight;
+	XMStoreFloat3(&localRight, localRightVec);
+	return localRight;
+}
+
+XMFLOAT3 Transform::GetForward()
+{
+	// Create forward vector
+	XMVECTOR forward = XMVectorSet(0, 0, 1, 0);
+
+	// Create quaternion based on p/y/r
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
+
+	// Rotate vector
+	XMVECTOR localForwardVec = XMVector3Rotate(forward, rotQuat);
+
+	// Return new vector
+	XMFLOAT3 localForward;
+	XMStoreFloat3(&localForward, localForwardVec);
+	return localForward;
 }
 
 void Transform::MoveAbsolute(float x, float y, float z)
@@ -97,7 +148,7 @@ void Transform::MoveAbsolute(float x, float y, float z)
 	dirty = true;
 }
 
-void Transform::MoveAbsolute(DirectX::XMFLOAT3 offset)
+void Transform::MoveAbsolute(XMFLOAT3 offset)
 {
 	MoveAbsolute(offset.x, offset.y, offset.z);
 }
@@ -120,7 +171,7 @@ void Transform::MoveRelative(float x, float y, float z)
 	dirty = true;
 }
 
-void Transform::MoveRelative(DirectX::XMFLOAT3 offset)
+void Transform::MoveRelative(XMFLOAT3 offset)
 {
 	MoveRelative(offset.x, offset.y, offset.z);
 }
@@ -133,7 +184,7 @@ void Transform::Rotate(float pitch, float yaw, float roll)
 	dirty = true;
 }
 
-void Transform::Rotate(DirectX::XMFLOAT3 rotation)
+void Transform::Rotate(XMFLOAT3 rotation)
 {
 	Rotate(rotation.x, rotation.y, rotation.z);
 }
@@ -146,7 +197,7 @@ void Transform::Scale(float x, float y, float z)
 	dirty = true;
 }
 
-void Transform::Scale(DirectX::XMFLOAT3 scale)
+void Transform::Scale(XMFLOAT3 scale)
 {
 	Scale(scale.x, scale.y, scale.z);
 }

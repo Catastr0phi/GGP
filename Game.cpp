@@ -97,6 +97,9 @@ void Game::Initialize()
 	for (int i = 0; i < 4; i++) {
 		tint[i] = 1.0f;
 	}
+
+	// Create camera
+	camera = std::make_shared<Camera>(XMFLOAT3(0,0,-1), 1, 1, XM_PIDIV2, Window::AspectRatio());
 }
 
 
@@ -296,6 +299,7 @@ void Game::CreateGeometry()
 // --------------------------------------------------------
 void Game::OnResize()
 {
+	if (camera) camera->UpdateProjectionMatrix(Window::AspectRatio());
 }
 
 
@@ -448,6 +452,8 @@ void Game::Update(float deltaTime, float totalTime)
 	entities[4].GetTransform().get()->SetPosition(0.5, 0.5, 0);
 	entities[4].GetTransform().get()->Scale(sinf(totalTime) * deltaTime, sinf(totalTime) * deltaTime, 0);
 	entities[4].GetTransform().get()->Scale(sinf(totalTime) * deltaTime, sinf(totalTime) * deltaTime, 0);
+
+	camera->Update(deltaTime);
 }
 
 
@@ -469,7 +475,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// - Other Direct3D calls will also be necessary to do more complex things
 	{
 		for (int i = 0; i < entities.size(); i++) {
-			entities[i].Draw(constantBuffer, offset, tint);
+			entities[i].Draw(constantBuffer, camera);
 		}
 	}
 
