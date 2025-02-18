@@ -55,6 +55,8 @@ private:
 	float color[4];
 	std::vector<std::shared_ptr<Mesh>> meshes;
 	std::vector<GameEntity> entities;
-	std::shared_ptr<Camera> camera;
+	std::vector<std::shared_ptr<Camera>> cameras;
+	std::shared_ptr<Camera> activeCam;
+	int activeCamIndex;
 };
 

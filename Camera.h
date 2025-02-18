@@ -19,6 +19,7 @@ public:
 	DirectX::XMFLOAT4X4 GetView();
 	DirectX::XMFLOAT4X4 getProjection();
 	std::shared_ptr<Transform> getTransform();
+	float GetFOV();
 
 private:
 	// Camera matrices

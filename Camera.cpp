@@ -69,3 +69,4 @@ void Camera::UpdateProjectionMatrix(float aspectRatio)
 DirectX::XMFLOAT4X4 Camera::GetView() { return viewMat; }
 DirectX::XMFLOAT4X4 Camera::getProjection() { return projMat; }
 std::shared_ptr<Transform> Camera::getTransform() { return transform; };
+float Camera::GetFOV() { return fieldOfView; };

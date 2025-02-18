@@ -98,8 +98,14 @@ void Game::Initialize()
 		tint[i] = 1.0f;
 	}
 
-	// Create camera
-	camera = std::make_shared<Camera>(XMFLOAT3(0,0,-1), 1, 1, XM_PIDIV2, Window::AspectRatio());
+	// Create cameras
+	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(0.0f, 0.0f, -1.0f), 1.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
+	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(1.0f, 0.0f, -1.0f), 1.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
+	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(-1.0f, 0.0f, -1.0f), 1.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
+
+	activeCam = cameras[0];
+
+	activeCamIndex = 0;
 }
 
 
@@ -299,7 +305,11 @@ void Game::CreateGeometry()
 // --------------------------------------------------------
 void Game::OnResize()
 {
-	if (camera) camera->UpdateProjectionMatrix(Window::AspectRatio());
+	if (!cameras.empty()) {
+		for (int i = 0; i < cameras.size(); i++) {
+			cameras[0]->UpdateProjectionMatrix(Window::AspectRatio());
+		}
+	}
 }
 
 
@@ -349,6 +359,35 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 		// Button for closing program
 		if (ImGui::Button("Exit Program")) {
 			Window::Quit();
+		}
+	}
+
+	// Camera details
+	if (ImGui::CollapsingHeader("Camera info")) 
+	{
+		// Position of the camera
+		ImGui::Text("Cam Position: %f,%f,%f", activeCam->getTransform()->GetPosition().x,
+			activeCam->getTransform()->GetPosition().y,
+			activeCam->getTransform()->GetPosition().z);
+
+		// Camera field of view in degrees
+		ImGui::Text("Cam FOV: %f", activeCam->GetFOV() * 180/XM_PI);
+
+		// Change camera
+		if (ImGui::Button("Prev")) 
+		{
+			if (activeCamIndex == 0) activeCamIndex = (int)(cameras.size() - 1);
+			else activeCamIndex--;
+
+			activeCam = cameras[activeCamIndex];
+		}
+
+		if (ImGui::Button("Next"))
+		{
+			if (activeCamIndex == (cameras.size() - 1)) activeCamIndex = 0;
+			else activeCamIndex++;
+
+			activeCam = cameras[activeCamIndex];
 		}
 	}
 
@@ -453,7 +492,7 @@ void Game::Update(float deltaTime, float totalTime)
 	entities[4].GetTransform().get()->Scale(sinf(totalTime) * deltaTime, sinf(totalTime) * deltaTime, 0);
 	entities[4].GetTransform().get()->Scale(sinf(totalTime) * deltaTime, sinf(totalTime) * deltaTime, 0);
 
-	camera->Update(deltaTime);
+	activeCam->Update(deltaTime);
 }
 
 
@@ -475,7 +514,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// - Other Direct3D calls will also be necessary to do more complex things
 	{
 		for (int i = 0; i < entities.size(); i++) {
-			entities[i].Draw(constantBuffer, camera);
+			entities[i].Draw(constantBuffer, activeCam);
 		}
 	}
 
