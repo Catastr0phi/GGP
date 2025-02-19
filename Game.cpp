@@ -93,11 +93,6 @@ void Game::Initialize()
 	color[2] = 0.75f;
 	color[3] = 0.0f;
 
-	// Initial tint, all set to 1
-	for (int i = 0; i < 4; i++) {
-		tint[i] = 1.0f;
-	}
-
 	// Create cameras
 	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(0.0f, 0.0f, -1.0f), 1.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
 	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(1.0f, 0.0f, -1.0f), 1.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
@@ -457,12 +452,8 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 	// Color and offset editors
 	if (ImGui::CollapsingHeader("Editors"))
 	{
-		// Color editors
+		// Background color editor
 		ImGui::ColorEdit4("Background color", color);
-		ImGui::ColorEdit4("Tint color", tint);
-
-		// Offset editors
-		ImGui::SliderFloat3("Offset", offset, -2.0f, 2.0f);
 	}
 
 	ImGui::End();

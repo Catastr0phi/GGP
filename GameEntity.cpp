@@ -23,7 +23,6 @@ void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer, std::
 
 	// Store data locally
 	VertexShaderData dataToCopy{};
-	dataToCopy.tint = XMFLOAT4(1, 1, 1, 1);
 	dataToCopy.world = transform.get()->GetWorldMatrix();
 	dataToCopy.view = camera->GetView();
 	dataToCopy.proj = camera->getProjection();

@@ -46,10 +46,6 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
 
-	// Constant buffer variables
-	float tint[4];
-	float offset[3];
-
 	// Additional variables
 	bool imGuiDemoVisible;
 	float color[4];
