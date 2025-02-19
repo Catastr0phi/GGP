@@ -4,12 +4,8 @@
 #include "Input.h"
 #include "PathHelpers.h"
 #include "Window.h"
-#include <memory>
-#include <vector>
 #include <string>
 #include "BufferStructs.h"
-
-#include <DirectXMath.h>
 
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")

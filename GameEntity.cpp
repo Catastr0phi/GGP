@@ -1,7 +1,6 @@
 #include "GameEntity.h"
 #include "BufferStructs.h"
 #include <DirectXMath.h>
-#include "Camera.h"
 
 using namespace DirectX;
 
