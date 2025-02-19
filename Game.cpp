@@ -305,9 +305,13 @@ void Game::CreateGeometry()
 // --------------------------------------------------------
 void Game::OnResize()
 {
-	if (!cameras.empty()) {
-		for (int i = 0; i < cameras.size(); i++) {
-			cameras[0]->UpdateProjectionMatrix(Window::AspectRatio());
+	// Only update after cameras have been made
+	if (!cameras.empty())
+	{
+		// Update all cameras
+		for (std::shared_ptr<Camera> cam : cameras) 
+		{
+			cam->UpdateProjectionMatrix(Window::AspectRatio());
 		}
 	}
 }
