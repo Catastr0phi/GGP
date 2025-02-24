@@ -429,19 +429,17 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 			float rotArray[3] = { rot.x, rot.y, rot.z };
 			float scaleArray[3] = { scale.x, scale.y, scale.z };
 
-			// Display info
+			// Display info and change if value changes
 			if (ImGui::TreeNode(name)) 
 			{
-				ImGui::SliderFloat3("Position", posArray, -2.0f, 2.0f);
-				ImGui::SliderFloat3("Rotation", rotArray, -4.0f, 4.0f);
-				ImGui::SliderFloat3("Scale", scaleArray, 0.0f, 2.0f);
+				if ( ImGui::SliderFloat3("Position", posArray, -2.0f, 2.0f) )
+					entities[i].GetTransform().get()->SetPosition(posArray[0], posArray[1], posArray[2]);
+				if ( ImGui::SliderFloat3("Rotation", rotArray, -4.0f, 4.0f) )
+					entities[i].GetTransform().get()->SetRotation(rotArray[0], rotArray[1], rotArray[2]);
+				if ( ImGui::SliderFloat3("Scale", scaleArray, 0.0f, 2.0f) )
+					entities[i].GetTransform().get()->SetScale(scaleArray[0], scaleArray[1], scaleArray[2]);
 				ImGui::TreePop();
 			}
-
-			// Set new values
-			entities[i].GetTransform().get()->SetPosition(posArray[0], posArray[1], posArray[2]);
-			entities[i].GetTransform().get()->SetRotation(rotArray[0], rotArray[1], rotArray[2]);
-			entities[i].GetTransform().get()->SetScale(scaleArray[0], scaleArray[1], scaleArray[2]);
 		}
 	}
 
