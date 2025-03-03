@@ -7,13 +7,11 @@
 using namespace DirectX;
 
 // Constructor
-Mesh::Mesh(Vertex vertices[], unsigned int indices[], int newVertexCount, int newIndexCount, std::string newName) {
-
-	// Assign count data
-	vertexCount = newVertexCount;
-	indexCount = newIndexCount;
-	name = newName;
-
+Mesh::Mesh(Vertex vertices[], unsigned int indices[], int newVertexCount, int newIndexCount, std::string newName) :
+	vertexCount(newVertexCount),
+	indexCount(newIndexCount),
+	name(newName)
+{
 	CreateBuffers(&vertices[0], &indices[0], vertexCount, indexCount);
 }
 

@@ -19,5 +19,5 @@ public:
 	std::shared_ptr<Material> GetMat();
 	void SetMat(std::shared_ptr<Material> mat);
 	std::shared_ptr<Transform> GetTransform();
-	void Draw(std::shared_ptr<Camera> camera);
+	void Draw(std::shared_ptr<Camera> camera, float totalTime);
 };

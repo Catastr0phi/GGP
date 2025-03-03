@@ -61,9 +61,9 @@ void Game::Initialize()
 	color[3] = 0.0f;
 
 	// Create cameras
-	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(0.0f, 0.0f, -1.0f), 1.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
-	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(1.0f, 0.0f, -1.0f), 1.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
-	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(-1.0f, 0.0f, -1.0f), 1.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
+	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(0.0f, 0.0f, -1.0f), 5.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
+	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(1.0f, 0.0f, -1.0f), 5.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
+	cameras.push_back(std::make_shared<Camera>(XMFLOAT3(-1.0f, 0.0f, -1.0f), 5.0f, 1.0f, XM_PIDIV2, Window::AspectRatio()));
 
 	activeCam = cameras[0];
 
@@ -124,13 +124,17 @@ void Game::LoadAssets()
 		Graphics::Device, Graphics::Context, FixPath(L"DebugUVsPS.cso").c_str());
 	std::shared_ptr<SimplePixelShader> normalPS = std::make_shared<SimplePixelShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"DebugNormalsPS.cso").c_str());
+	std::shared_ptr<SimplePixelShader> customPS = std::make_shared<SimplePixelShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"CustomPS.cso").c_str());
 
 	// Create materials
 	std::shared_ptr<Material> mat1 = std::make_shared<Material>(XMFLOAT4(0.5f, 0.2f, 1.0f, 1.0f), vs, tintPS);
 	std::shared_ptr<Material> mat2 = std::make_shared<Material>(XMFLOAT4(1.0f, 0.3f, 0.0f, 1.0f), vs, tintPS);
 	std::shared_ptr<Material> mat3 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vs, uvPS);
 	std::shared_ptr<Material> mat4 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vs, normalPS);
+	std::shared_ptr<Material> mat5 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vs, customPS);
 
+	// Create meshes
 	std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cube.obj").c_str(), "Cube");
 	std::shared_ptr<Mesh> sphere = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/sphere.obj").c_str(), "Sphere");
 	std::shared_ptr<Mesh> cylinder = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cylinder.obj").c_str(), "Cylinder");
@@ -143,12 +147,15 @@ void Game::LoadAssets()
 	meshes.push_back(torus);
 	meshes.push_back(helix);
 
+	// Create entities
 	entities.push_back(GameEntity(cube, mat1));
 	entities.push_back(GameEntity(sphere, mat2));
-	entities.push_back(GameEntity(helix, mat3));
+	entities.push_back(GameEntity(sphere, mat3));
 	entities.push_back(GameEntity(torus, mat3));
 	entities.push_back(GameEntity(cylinder, mat4));
 	entities.push_back(GameEntity(helix, mat4));
+	entities.push_back(GameEntity(helix, mat5));
+	entities.push_back(GameEntity(torus, mat5));
 
 	// Move entities into starting positions
 	entities[0].GetTransform()->MoveAbsolute(-2, 3, 5);
@@ -157,6 +164,8 @@ void Game::LoadAssets()
 	entities[3].GetTransform()->MoveAbsolute(2, 0, 5);
 	entities[4].GetTransform()->MoveAbsolute(-2, -3, 5);
 	entities[5].GetTransform()->MoveAbsolute(2, -3, 5);
+	entities[6].GetTransform()->MoveAbsolute(-6, 0, 5);
+	entities[7].GetTransform()->MoveAbsolute(6, 0, 5);
 }
 
 
@@ -358,7 +367,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// - Other Direct3D calls will also be necessary to do more complex things
 	{
 		for (int i = 0; i < entities.size(); i++) {
-			entities[i].Draw(activeCam);
+			entities[i].Draw(activeCam, totalTime);
 		}
 	}
 

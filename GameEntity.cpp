@@ -15,14 +15,11 @@ std::shared_ptr<Mesh> GameEntity::GetMesh() { return mesh; }
 
 std::shared_ptr<Material> GameEntity::GetMat() { return material; }
 
-void GameEntity::SetMat(std::shared_ptr<Material> mat)
-{
-	material = mat;
-}
+void GameEntity::SetMat(std::shared_ptr<Material> mat) { material = mat; }
 
 std::shared_ptr<Transform> GameEntity::GetTransform() { return transform; }
 
-void GameEntity::Draw(std::shared_ptr<Camera> camera)
+void GameEntity::Draw(std::shared_ptr<Camera> camera, float totalTime)
 {
 	material->GetVS()->SetShader();
 	material->GetPS()->SetShader();
@@ -41,7 +38,8 @@ void GameEntity::Draw(std::shared_ptr<Camera> camera)
 	// pixel shader
 	std::shared_ptr<SimplePixelShader> ps = material->GetPS();
 
-	ps ->SetFloat4("colorTint", material->GetTint());
+	ps->SetFloat4("colorTint", material->GetTint());
+	ps->SetFloat("time", totalTime);
 
 	ps->CopyAllBufferData();
 

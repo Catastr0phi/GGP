@@ -40,6 +40,12 @@ void Camera::Update(float dt)
         float yRot = lookSpeed * Input::GetMouseYDelta();
 
         transform->Rotate(yRot, xRot, 0);
+
+        // Clamp rotation
+        if (transform->GetPitchYawRoll().x >= XM_PIDIV2) 
+            transform->SetRotation(XM_PIDIV2 - 0.0001f, transform->GetPitchYawRoll().y, transform->GetPitchYawRoll().z);
+        if (transform->GetPitchYawRoll().x <= -XM_PIDIV2)
+            transform->SetRotation(-XM_PIDIV2 + 0.0001f, transform->GetPitchYawRoll().y, transform->GetPitchYawRoll().z);
     }
 
     UpdateViewMatrix();
