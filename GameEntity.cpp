@@ -27,15 +27,23 @@ void GameEntity::Draw(std::shared_ptr<Camera> camera)
 	material->GetVS()->SetShader();
 	material->GetPS()->SetShader();
 
-	// Copy data to cbuffer
+	// Copy data to cbuffers
+	
+	// vertex shader
 	std::shared_ptr<SimpleVertexShader> vs = material->GetVS();
 
-	vs->SetFloat4("colorTint", material->GetTint()); 
 	vs->SetMatrix4x4("world", transform->GetWorldMatrix()); 
 	vs->SetMatrix4x4("view", camera->GetView()); 
 	vs->SetMatrix4x4("proj", camera->GetProjection()); 
 
 	vs->CopyAllBufferData();
+
+	// pixel shader
+	std::shared_ptr<SimplePixelShader> ps = material->GetPS();
+
+	ps ->SetFloat4("colorTint", material->GetTint());
+
+	ps->CopyAllBufferData();
 
 	// Draw mesh
 	mesh.get()->Draw();

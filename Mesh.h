@@ -20,6 +20,8 @@ private:
 
 	std::string name;
 
+	void CreateBuffers(Vertex vertices[], unsigned int indices[], int newVertexCount, int newIndexCount);
+
 // Public methods
 public:
 	Mesh(Vertex vertices[], unsigned int indices[], int vertexCount, int indexCount, std::string newName);
