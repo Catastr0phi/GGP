@@ -3,6 +3,7 @@
 #include "Mesh.h"
 #include <memory>
 #include "Camera.h"
+#include "Material.h"
 
 class GameEntity 
 {
@@ -10,10 +11,13 @@ class GameEntity
 private:
 	std::shared_ptr<Transform> transform;
 	std::shared_ptr<Mesh> mesh;
+	std::shared_ptr<Material> material;
 // Public data
 public:
-	GameEntity(std::shared_ptr<Mesh> mesh);
+	GameEntity(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat);
 	std::shared_ptr<Mesh> GetMesh();
+	std::shared_ptr<Material> GetMat();
+	void SetMat(std::shared_ptr<Material> mat);
 	std::shared_ptr<Transform> GetTransform();
-	void Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer, std::shared_ptr<Camera> camera);
+	void Draw(std::shared_ptr<Camera> camera);
 };

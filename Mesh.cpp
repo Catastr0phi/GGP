@@ -46,6 +46,10 @@ Mesh::Mesh(Vertex vertices[], unsigned int indices[], int newVertexCount, int ne
 	Graphics::Device->CreateBuffer(&ibd, &initialIndexData, indexBuffer.GetAddressOf());
 }
 
+Mesh::Mesh(const char* objFile, std::string newName) {
+
+}
+
 // Destructor
 // Empty since comptrs should do this
 Mesh::~Mesh() {

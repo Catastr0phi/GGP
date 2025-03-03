@@ -4,41 +4,38 @@
 
 using namespace DirectX;
 
-GameEntity::GameEntity(std::shared_ptr<Mesh> mesh)
+GameEntity::GameEntity(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat) :
+	mesh(mesh),
+	material(mat)
 {
-	this->mesh = mesh;
 	transform = std::make_shared<Transform>();
 }
 
 std::shared_ptr<Mesh> GameEntity::GetMesh() { return mesh; }
 
+std::shared_ptr<Material> GameEntity::GetMat() { return material; }
+
+void GameEntity::SetMat(std::shared_ptr<Material> mat)
+{
+	material = mat;
+}
+
 std::shared_ptr<Transform> GameEntity::GetTransform() { return transform; }
 
-void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer, std::shared_ptr<Camera> camera)
+void GameEntity::Draw(std::shared_ptr<Camera> camera)
 {
-	// Rebind constant buffer
-	// Shouldn't matter now, but relevant if we ever rebind the buffer elsewhere
-	Graphics::Context->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
+	material->GetVS()->SetShader();
+	material->GetPS()->SetShader();
 
-	// Store data locally
-	VertexShaderData dataToCopy{};
-	dataToCopy.world = transform.get()->GetWorldMatrix();
-	dataToCopy.view = camera->GetView();
-	dataToCopy.proj = camera->getProjection();
+	// Copy data to cbuffer
+	std::shared_ptr<SimpleVertexShader> vs = material->GetVS();
 
-	// Map buffer
-	D3D11_MAPPED_SUBRESOURCE mapped{};
-	Graphics::Context->Map(
-		constantBuffer.Get(),
-		0,
-		D3D11_MAP_WRITE_DISCARD,
-		0,
-		&mapped);
+	vs->SetFloat4("colorTint", material->GetTint()); 
+	vs->SetMatrix4x4("world", transform->GetWorldMatrix()); 
+	vs->SetMatrix4x4("view", camera->GetView()); 
+	vs->SetMatrix4x4("proj", camera->GetProjection()); 
 
-	memcpy(mapped.pData, &dataToCopy, sizeof(VertexShaderData));
-
-	// Unmap when done
-	Graphics::Context->Unmap(constantBuffer.Get(), 0);
+	vs->CopyAllBufferData();
 
 	// Draw mesh
 	mesh.get()->Draw();

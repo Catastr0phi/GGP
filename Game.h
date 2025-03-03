@@ -28,7 +28,7 @@ private:
 
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
 	void LoadShaders();
-	void CreateGeometry();
+	void LoadAssets();
 
 	// ImGui helper functions
 	void UpdateImGui(float deltaTime);
@@ -40,11 +40,6 @@ private:
 	//  - More info here: https://github.com/Microsoft/DirectXTK/wiki/ComPtr
 
 	// Shaders and shader-related constructs
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
-	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
-
-	Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
 
 	// Additional variables
 	bool imGuiDemoVisible;

@@ -17,8 +17,8 @@ public:
 
 	// Getters
 	DirectX::XMFLOAT4X4 GetView();
-	DirectX::XMFLOAT4X4 getProjection();
-	std::shared_ptr<Transform> getTransform();
+	DirectX::XMFLOAT4X4 GetProjection();
+	std::shared_ptr<Transform> GetTransform();
 	float GetFOV();
 
 private:

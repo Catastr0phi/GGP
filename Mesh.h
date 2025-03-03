@@ -23,6 +23,7 @@ private:
 // Public methods
 public:
 	Mesh(Vertex vertices[], unsigned int indices[], int vertexCount, int indexCount, std::string newName);
+	Mesh(const char* objFile, std::string newName);
 	~Mesh();
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer();
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffer();
