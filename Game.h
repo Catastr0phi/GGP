@@ -27,7 +27,6 @@ public:
 private:
 
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
-	void LoadShaders();
 	void LoadAssets();
 
 	// ImGui helper functions
@@ -39,15 +38,15 @@ private:
 	//     Component Object Model, which DirectX objects do
 	//  - More info here: https://github.com/Microsoft/DirectXTK/wiki/ComPtr
 
-	// Shaders and shader-related constructs
-
-	// Additional variables
-	bool imGuiDemoVisible;
-	float color[4];
+	// Assets and cameras 
 	std::vector<std::shared_ptr<Mesh>> meshes;
 	std::vector<GameEntity> entities;
 	std::vector<std::shared_ptr<Camera>> cameras;
 	std::shared_ptr<Camera> activeCam;
 	int activeCamIndex;
+
+	// Additional variables
+	bool imGuiDemoVisible;
+	float color[4];
 };
 

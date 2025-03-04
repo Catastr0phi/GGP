@@ -8,6 +8,8 @@
 #include "BufferStructs.h"
 #include "Material.h"
 
+#include "WICTextureLoader.h"
+
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")
 #include <d3dcompiler.h>
@@ -27,10 +29,6 @@ using namespace DirectX;
 // --------------------------------------------------------
 void Game::Initialize()
 {
-	// Helper methods for loading shaders, creating some basic
-	// geometry to draw and some simple camera matrices.
-	//  - You'll be expanding and/or replacing these later
-	LoadShaders();
 	LoadAssets();
 
 	// Set initial graphics API state
@@ -87,20 +85,6 @@ Game::~Game()
 
 
 // --------------------------------------------------------
-// Loads shaders from compiled shader object (.cso) files
-// and also created the Input Layout that describes our 
-// vertex data to the rendering pipeline. 
-// - Input Layout creation is done here because it must 
-//    be verified against vertex shader byte code
-// - We'll have that byte code already loaded below
-// --------------------------------------------------------
-void Game::LoadShaders()
-{
-
-}
-
-
-// --------------------------------------------------------
 // Loads assets: shaders, entities, etc
 // --------------------------------------------------------
 void Game::LoadAssets()
@@ -128,11 +112,11 @@ void Game::LoadAssets()
 		Graphics::Device, Graphics::Context, FixPath(L"CustomPS.cso").c_str());
 
 	// Create materials
-	std::shared_ptr<Material> mat1 = std::make_shared<Material>(XMFLOAT4(0.5f, 0.2f, 1.0f, 1.0f), vs, tintPS);
-	std::shared_ptr<Material> mat2 = std::make_shared<Material>(XMFLOAT4(1.0f, 0.3f, 0.0f, 1.0f), vs, tintPS);
-	std::shared_ptr<Material> mat3 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vs, uvPS);
-	std::shared_ptr<Material> mat4 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vs, normalPS);
-	std::shared_ptr<Material> mat5 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vs, customPS);
+	std::shared_ptr<Material> mat1 = std::make_shared<Material>(purple, vs, tintPS);
+	std::shared_ptr<Material> mat2 = std::make_shared<Material>(red, vs, tintPS);
+	std::shared_ptr<Material> mat3 = std::make_shared<Material>(white, vs, uvPS);
+	std::shared_ptr<Material> mat4 = std::make_shared<Material>(white, vs, normalPS);
+	std::shared_ptr<Material> mat5 = std::make_shared<Material>(white, vs, customPS);
 
 	// Create meshes
 	std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cube.obj").c_str(), "Cube");
@@ -363,11 +347,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	// DRAW geometry
-	// - These steps are generally repeated for EACH object you draw
-	// - Other Direct3D calls will also be necessary to do more complex things
 	{
 		for (int i = 0; i < entities.size(); i++) {
-			entities[i].Draw(activeCam, totalTime);
+			entities[i].GetMat()->GetPS()->SetFloat("time", totalTime);
+
+			entities[i].Draw(activeCam);
 		}
 	}
 
