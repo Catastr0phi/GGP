@@ -53,9 +53,9 @@ void Game::Initialize()
 	//ImGui::StyleColorsClassic();
 
 	// Set initial background color
-	color[0] = 0.4f;
-	color[1] = 0.6f;
-	color[2] = 0.75f;
+	color[0] = 0.1f;
+	color[1] = 0.0f;
+	color[2] = 0.2f;
 	color[3] = 0.0f;
 
 	// Create cameras
@@ -102,7 +102,9 @@ void Game::LoadAssets()
 	// Load Shaders
 	std::shared_ptr<SimpleVertexShader> vs = std::make_shared<SimpleVertexShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"VertexShader.cso").c_str());
-	std::shared_ptr<SimplePixelShader> tintPS = std::make_shared<SimplePixelShader>(
+	std::shared_ptr<SimpleVertexShader> wobbleVS = std::make_shared<SimpleVertexShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"WobbleVS.cso").c_str());
+	std::shared_ptr<SimplePixelShader> basicPS = std::make_shared<SimplePixelShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"PixelShader.cso").c_str());
 	std::shared_ptr<SimplePixelShader> uvPS = std::make_shared<SimplePixelShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"DebugUVsPS.cso").c_str());
@@ -110,13 +112,54 @@ void Game::LoadAssets()
 		Graphics::Device, Graphics::Context, FixPath(L"DebugNormalsPS.cso").c_str());
 	std::shared_ptr<SimplePixelShader> customPS = std::make_shared<SimplePixelShader>(
 		Graphics::Device, Graphics::Context, FixPath(L"CustomPS.cso").c_str());
+	std::shared_ptr<SimplePixelShader> combinePS = std::make_shared<SimplePixelShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"TexCombinePS.cso").c_str());
+
+	// Shader Resource View for textures
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> brickSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> lavaSRV;
+
+	// Sampler state
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+
+	D3D11_SAMPLER_DESC stateDesc = {};
+	stateDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	stateDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	stateDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	stateDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	stateDesc.MaxAnisotropy = 15;
+	stateDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	Graphics::Device.Get()->CreateSamplerState(&stateDesc, &samplerState);
+
+	// Load textures
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Bricks.png").c_str(), 0, &brickSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Lava.png").c_str(), 0, &lavaSRV);
 
 	// Create materials
-	std::shared_ptr<Material> mat1 = std::make_shared<Material>(purple, vs, tintPS);
-	std::shared_ptr<Material> mat2 = std::make_shared<Material>(red, vs, tintPS);
-	std::shared_ptr<Material> mat3 = std::make_shared<Material>(white, vs, uvPS);
+	std::shared_ptr<Material> mat1 = std::make_shared<Material>(purple, vs, basicPS);
+	mat1->AddTextureSRV("SurfaceTexture", brickSRV);
+	mat1->AddSampler("BasicSampler", samplerState);
+	
+	std::shared_ptr<Material> mat2 = std::make_shared<Material>(red, vs, basicPS);
+	mat2->AddTextureSRV("SurfaceTexture", lavaSRV);
+	mat2->AddSampler("BasicSampler", samplerState);
+	mat2->SetScale(XMFLOAT2(3, 3));
+	
+	std::shared_ptr<Material> mat3 = std::make_shared<Material>(white, vs, combinePS);
+	mat3->AddTextureSRV("SurfaceTexture", lavaSRV);
+	mat3->AddTextureSRV("OverlayTexture", brickSRV);
+	mat3->AddSampler("BasicSampler", samplerState);
+	mat3->SetScale(XMFLOAT2(5, 5));
+	
 	std::shared_ptr<Material> mat4 = std::make_shared<Material>(white, vs, normalPS);
-	std::shared_ptr<Material> mat5 = std::make_shared<Material>(white, vs, customPS);
+	std::shared_ptr<Material> mat5 = std::make_shared<Material>(white, wobbleVS, customPS);
+
+	materials.push_back(mat1);
+	materials.push_back(mat2);
+	materials.push_back(mat3);
+	materials.push_back(mat4);
+	materials.push_back(mat5);
 
 	// Create meshes
 	std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cube.obj").c_str(), "Cube");
@@ -306,6 +349,33 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 		}
 	}
 
+	// Material details
+	if (ImGui::CollapsingHeader("Materials"))
+	{
+		for (int i = 0; i < materials.size(); i++)
+		{
+			std::string nameStr = "Mat " + std::to_string(i);
+			const char* name = nameStr.c_str();
+			XMFLOAT4 tint = materials[i]->GetTint();
+			XMFLOAT2 scale = materials[i]->GetScale();
+			XMFLOAT2 offset = materials[i]->GetOffset();
+			float tintArray[4] = {tint.x, tint.y, tint.z, tint.w};
+			float scaleArray[2] = { scale.x, scale.y };
+			float offsetArray[2] = { offset.x, offset.y };
+
+			if (ImGui::TreeNode(name)) 
+			{
+				if (ImGui::ColorEdit4("Tint", tintArray))
+					materials[i]->SetTint(XMFLOAT4(tintArray[0], tintArray[1], tintArray[2], tintArray[3]));
+				if (ImGui::SliderFloat2("Scale", scaleArray, 0.5f, 5.0f))
+					materials[i]->SetScale(XMFLOAT2(scaleArray[0], scaleArray[1]));
+				if (ImGui::SliderFloat2("Offset", offsetArray, -1.0f, 1.0f))
+					materials[i]->SetOffset(XMFLOAT2(offsetArray[0], offsetArray[1]));
+				ImGui::TreePop();
+			}
+		}
+	}
+
 	// Color and offset editors
 	if (ImGui::CollapsingHeader("Editors"))
 	{
@@ -350,6 +420,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	{
 		for (int i = 0; i < entities.size(); i++) {
 			entities[i].GetMat()->GetPS()->SetFloat("time", totalTime);
+			entities[i].GetMat()->GetVS()->SetFloat("time", totalTime);
 
 			entities[i].Draw(activeCam);
 		}

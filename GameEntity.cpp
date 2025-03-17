@@ -23,6 +23,7 @@ void GameEntity::Draw(std::shared_ptr<Camera> camera)
 {
 	material->GetVS()->SetShader();
 	material->GetPS()->SetShader();
+	material->PrepareMaterial();
 
 	// Copy data to cbuffers
 	
@@ -39,6 +40,8 @@ void GameEntity::Draw(std::shared_ptr<Camera> camera)
 	std::shared_ptr<SimplePixelShader> ps = material->GetPS();
 
 	ps->SetFloat4("colorTint", material->GetTint());
+	ps->SetFloat2("textureScale", material->GetScale());
+	ps->SetFloat2("textureOffset", material->GetOffset());
 
 	ps->CopyAllBufferData();
 

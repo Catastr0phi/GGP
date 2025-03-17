@@ -5,8 +5,9 @@ cbuffer ExternalData : register(b0)
     float2 textureOffset;
 }
 
-Texture2D SurfaceTexture : register(t0); 
-SamplerState BasicSampler : register(s0); 
+Texture2D SurfaceTexture : register(t0);
+Texture2D OverlayTexture : register(t1);
+SamplerState BasicSampler : register(s0);
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -20,9 +21,9 @@ struct VertexToPixel
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float4 screenPosition	: SV_POSITION;
-    float2 uv				: TEXCOORD;
-    float3 normal			: NORMAL;
+    float4 screenPosition : SV_POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
 };
 
 // --------------------------------------------------------
@@ -37,7 +38,7 @@ struct VertexToPixel
 float4 main(VertexToPixel input) : SV_TARGET
 {
     float2 uv = input.uv * textureScale + textureOffset;
-    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, uv);
+    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, uv) + OverlayTexture.Sample(BasicSampler, uv);
 	
     return colorTint * surfaceColor;
 }

@@ -41,6 +41,7 @@ private:
 	// Assets and cameras 
 	std::vector<std::shared_ptr<Mesh>> meshes;
 	std::vector<GameEntity> entities;
+	std::vector<std::shared_ptr<Material>> materials;
 	std::vector<std::shared_ptr<Camera>> cameras;
 	std::shared_ptr<Camera> activeCam;
 	int activeCamIndex;
