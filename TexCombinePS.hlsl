@@ -38,7 +38,7 @@ struct VertexToPixel
 float4 main(VertexToPixel input) : SV_TARGET
 {
     float2 uv = input.uv * textureScale + textureOffset;
-    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, uv) + OverlayTexture.Sample(BasicSampler, uv);
+    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, uv) * OverlayTexture.Sample(BasicSampler, uv);
 	
     return colorTint * surfaceColor;
 }

@@ -33,4 +33,5 @@ public:
 	void AddTextureSRV(std::string shaderVariableName, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
 	void AddSampler(std::string shaderVariableName, Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState);
 	void PrepareMaterial();
+	void CreateGUI();
 };

@@ -31,6 +31,7 @@ void GameEntity::Draw(std::shared_ptr<Camera> camera)
 	std::shared_ptr<SimpleVertexShader> vs = material->GetVS();
 
 	vs->SetMatrix4x4("world", transform->GetWorldMatrix()); 
+	vs->SetMatrix4x4("worldInvTrans", transform->GetWorldInverseTransposeMatrix());
 	vs->SetMatrix4x4("view", camera->GetView()); 
 	vs->SetMatrix4x4("proj", camera->GetProjection()); 
 

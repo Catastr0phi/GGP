@@ -153,7 +153,7 @@ void Game::LoadAssets()
 	mat3->SetScale(XMFLOAT2(5, 5));
 	
 	std::shared_ptr<Material> mat4 = std::make_shared<Material>(white, vs, normalPS);
-	std::shared_ptr<Material> mat5 = std::make_shared<Material>(white, wobbleVS, customPS);
+	std::shared_ptr<Material> mat5 = std::make_shared<Material>(white, vs, customPS);
 
 	materials.push_back(mat1);
 	materials.push_back(mat2);
@@ -356,21 +356,10 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 		{
 			std::string nameStr = "Mat " + std::to_string(i);
 			const char* name = nameStr.c_str();
-			XMFLOAT4 tint = materials[i]->GetTint();
-			XMFLOAT2 scale = materials[i]->GetScale();
-			XMFLOAT2 offset = materials[i]->GetOffset();
-			float tintArray[4] = {tint.x, tint.y, tint.z, tint.w};
-			float scaleArray[2] = { scale.x, scale.y };
-			float offsetArray[2] = { offset.x, offset.y };
 
 			if (ImGui::TreeNode(name)) 
 			{
-				if (ImGui::ColorEdit4("Tint", tintArray))
-					materials[i]->SetTint(XMFLOAT4(tintArray[0], tintArray[1], tintArray[2], tintArray[3]));
-				if (ImGui::SliderFloat2("Scale", scaleArray, 0.5f, 5.0f))
-					materials[i]->SetScale(XMFLOAT2(scaleArray[0], scaleArray[1]));
-				if (ImGui::SliderFloat2("Offset", offsetArray, -1.0f, 1.0f))
-					materials[i]->SetOffset(XMFLOAT2(offsetArray[0], offsetArray[1]));
+				materials[i]->CreateGUI();
 				ImGui::TreePop();
 			}
 		}
@@ -395,11 +384,13 @@ void Game::Update(float deltaTime, float totalTime)
 
 	UpdateInspector(deltaTime, totalTime);
 
-	// Example input checking: Quit if the escape key is pressed
-	if (Input::KeyDown(VK_ESCAPE))
-		Window::Quit();
-
 	activeCam->Update(deltaTime);
+
+	// Rotate all entities
+	for (int i = 0; i < entities.size(); i++) 
+	{
+		entities[i].GetTransform()->Rotate(0, 0.5 * deltaTime, 0);
+	}
 }
 
 
@@ -421,6 +412,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		for (int i = 0; i < entities.size(); i++) {
 			entities[i].GetMat()->GetPS()->SetFloat("time", totalTime);
 			entities[i].GetMat()->GetVS()->SetFloat("time", totalTime);
+			entities[i].GetMat()->GetPS()->SetFloat3("camPosition", activeCam->GetTransform()->GetPosition());
 
 			entities[i].Draw(activeCam);
 		}

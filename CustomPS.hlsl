@@ -30,7 +30,7 @@ struct VertexToPixel
 // - Named "main" because that's the default the shader compiler looks for
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
-{
+{        
     // Pixelation factor: Lower value means less possible colors, so a more pixelated look
     float pixelation = 5;
     

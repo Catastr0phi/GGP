@@ -1,4 +1,7 @@
 #include "Material.h"
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_dx11.h"
+#include "ImGui/imgui_impl_win32.h"
 
 using namespace DirectX;
 
@@ -41,4 +44,18 @@ void Material::PrepareMaterial()
 {
 	for (auto& t : textureSRVs) { ps->SetShaderResourceView(t.first.c_str(), t.second); }
 	for (auto& s : samplers) { ps->SetSamplerState(s.first.c_str(), s.second); }
+}
+
+// Helper function for building ImGui menu
+// TODO: Create something like this in for all classes that are displayed
+void Material::CreateGUI() 
+{
+	for (auto& t : textureSRVs) 
+	{
+		ImGui::Image((ImTextureID)t.second.Get(), ImVec2(64,64));
+	}
+
+	(ImGui::ColorEdit4("Tint", &tint.x));
+	(ImGui::SliderFloat2("Scale", &scale.x, 0.5f, 5.0f));
+	(ImGui::SliderFloat2("Offset", &offset.x, -1.0f, 1.0f));
 }
