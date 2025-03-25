@@ -23,6 +23,8 @@ void GameEntity::Draw(std::shared_ptr<Camera> camera)
 {
 	material->GetVS()->SetShader();
 	material->GetPS()->SetShader();
+
+	// Handles certain parts of draw setup internally, such as setting pixel shader info
 	material->PrepareMaterial();
 
 	// Copy data to cbuffers
@@ -36,15 +38,6 @@ void GameEntity::Draw(std::shared_ptr<Camera> camera)
 	vs->SetMatrix4x4("proj", camera->GetProjection()); 
 
 	vs->CopyAllBufferData();
-
-	// pixel shader
-	std::shared_ptr<SimplePixelShader> ps = material->GetPS();
-
-	ps->SetFloat4("colorTint", material->GetTint());
-	ps->SetFloat2("textureScale", material->GetScale());
-	ps->SetFloat2("textureOffset", material->GetOffset());
-
-	ps->CopyAllBufferData();
 
 	// Draw mesh
 	mesh.get()->Draw();

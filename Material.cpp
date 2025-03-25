@@ -5,10 +5,11 @@
 
 using namespace DirectX;
 
-Material::Material(DirectX::XMFLOAT4 colorTint, std::shared_ptr<SimpleVertexShader> vertexShader, std::shared_ptr<SimplePixelShader> pixelShader) :
+Material::Material(DirectX::XMFLOAT4 colorTint, float roughness, std::shared_ptr<SimpleVertexShader> vertexShader, std::shared_ptr<SimplePixelShader> pixelShader) :
 	tint(colorTint),
 	vs(vertexShader),
-	ps(pixelShader)
+	ps(pixelShader),
+	roughness(roughness)
 {
 	scale = XMFLOAT2(1, 1);
 	offset = XMFLOAT2(0, 0);
@@ -44,6 +45,12 @@ void Material::PrepareMaterial()
 {
 	for (auto& t : textureSRVs) { ps->SetShaderResourceView(t.first.c_str(), t.second); }
 	for (auto& s : samplers) { ps->SetSamplerState(s.first.c_str(), s.second); }
+
+	ps->SetFloat4("colorTint", tint);
+	ps->SetFloat2("textureScale", scale);
+	ps->SetFloat2("textureOffset", offset);
+	ps->SetFloat("roughness", roughness);
+	ps->CopyAllBufferData();
 }
 
 // Helper function for building ImGui menu

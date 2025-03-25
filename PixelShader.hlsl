@@ -1,70 +1,106 @@
+#include "ShaderStructs.hlsli"
+
 cbuffer ExternalData : register(b0)
 {
+    Light lights[MAX_LIGHTS];
     float4 colorTint;
     float2 textureScale;
     float2 textureOffset;
     float3 camPosition;
+    float roughness;
+    float3 ambient;
+    int lightCount;
 }
 
 Texture2D SurfaceTexture : register(t0); 
 SamplerState BasicSampler : register(s0); 
 
-// Struct representing the data we expect to receive from earlier pipeline stages
-// - Should match the output of our corresponding vertex shader
-// - The name of the struct itself is unimportant
-// - The variable names don't have to match other shaders (just the semantics)
-// - Each variable must have a semantic, which defines its usage
-struct VertexToPixel
+float Attenuate(Light light, float3 worldPos)
 {
-	// Data type
-	//  |
-	//  |   Name          Semantic
-	//  |    |                |
-	//  v    v                v
-	float4 screenPosition	: SV_POSITION;
-    float2 uv				: TEXCOORD;
-    float3 normal			: NORMAL;
-    float3 worldPos : POSITION;
-};
+    float dist = distance(light.Position, worldPos);
+    float att = saturate(1.0f - (dist * dist / (light.Range * light.Range)));
+    return att * att;
+}
 
-// --------------------------------------------------------
-// The entry point (main method) for our pixel shader
-// 
-// - Input is the data coming down the pipeline (defined by the struct)
-// - Output is a single color (float4)
-// - Has a special semantic (SV_TARGET), which means 
-//    "put the output of this into the current render target"
-// - Named "main" because that's the default the shader compiler looks for
-// --------------------------------------------------------
+float3 directionalLight(Light light, float3 normal, float3 V, float exponent, float3 surfaceColor, float3 direction)
+{
+    // Diffuse calculation
+    float3 diffuse = max(dot(normal, normalize(-direction)), 0) * light.Intensity * light.Color;
+    
+    // Specular calcualtion
+    float3 R = reflect(normalize(direction), normal);
+    float3 specular = float3(0, 0, 0);
+    
+    if (exponent > 0.05)
+    {
+        specular = pow(max(dot(R, V), 0.0f), exponent);
+    }
+    
+    return surfaceColor * (diffuse + specular);
+}
+
+float3 pointLight(Light light, float3 normal, float3 V, float exponent, float3 surfaceColor, float3 worldPos)
+{
+    // Get direction
+    float3 direction = normalize(worldPos - light.Position);
+    
+    // Call directional light with found direction and attenuate
+    return directionalLight(light, normal, V, exponent, surfaceColor, direction) * Attenuate(light, worldPos);
+}
+
+float3 spotLight(Light light, float3 normal, float3 V, float exponent, float3 surfaceColor, float3 worldPos)
+{
+    // Get direction
+    float3 direction = normalize(worldPos - light.Position);
+    
+    // Get angle between our direction and light direction
+    float angle = saturate(dot(direction, light.Direction));
+    
+    // Get cosines and calc range
+    float cosInner = cos(light.SpotInnerAngle);
+    float costOuter = cos(light.SpotOuterAngle);
+    float falloffRange = costOuter - cosInner;
+    
+    // How much this pixel should be lit based on angles
+    float spotTerm = saturate((costOuter - angle) / falloffRange);
+    
+    // Use pointLight function and multiply by term
+    return pointLight(light, normal, V, exponent, surfaceColor, worldPos) * spotTerm;
+}
+
 float4 main(VertexToPixel input) : SV_TARGET
 {   
     float2 uv = input.uv * textureScale + textureOffset;
-    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, uv);
+    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, uv) * colorTint;
     
-    // In-class lighting demo
-    /*float3 totalLight = float3(0, 0, 0);
+    input.normal = normalize(input.normal);
+    
+    float3 totalLight = float3(0, 0, 0);
     
     // Ambient
-    float3 ambientColor = float3(0.1f, 0.0f, 0.2f);
-    float3 ambientTerm = surfaceColor * ambientColor;
+    float3 ambientTerm = surfaceColor.xyz * ambient;
+    totalLight += ambientTerm;
     
-    // Light dir
-    float3 lightColor = float3(1, 1, 1);
-    float lightIntensity = 1.0f;
-    float3 lightDirection = float3(1, 0, 0);
+    // Light calculation
+    float3 V = normalize(camPosition - input.worldPos);
+    float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
     
-    // Diffuse calculation
-    float3 diffuseTerm = max(dot(input.normal, -lightDirection), 0) * lightIntensity * lightColor * surfaceColor;
-    
-    // Specular calculation
-    float3 refl = reflect(lightDirection, input.normal);
-    float3 viewVector = normalize(camPosition - input.worldPos);
-    
-    float3 specTerm = pow(max(dot(refl, viewVector), 0), 256) *
-        lightColor * lightIntensity * surfaceColor;
-    
-    // Add lighting
-    totalLight += ambientTerm + diffuseTerm + specTerm;*/
-	
-    return colorTint * surfaceColor;
+    for (int i = 0; i < lightCount; i++)
+    {
+        switch (lights[i].Type)
+        {
+            case LIGHT_TYPE_DIRECTIONAL:
+                totalLight += directionalLight(lights[i], input.normal, V, specExponent, surfaceColor.xyz, lights[i].Direction);
+                break;
+            case LIGHT_TYPE_POINT:
+                totalLight += pointLight(lights[i], input.normal, V, specExponent, surfaceColor.xyz, input.worldPos);
+                break;
+            case LIGHT_TYPE_SPOT:
+                totalLight += spotLight(lights[i], input.normal, V, specExponent, surfaceColor.xyz, input.worldPos);
+                break;
+        }
+    }
+
+    	
+    return float4(totalLight, 1);
 }

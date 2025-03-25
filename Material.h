@@ -12,13 +12,14 @@ private:
 	DirectX::XMFLOAT4 tint;
 	DirectX::XMFLOAT2 scale;
 	DirectX::XMFLOAT2 offset;
+	float roughness;
 	std::shared_ptr<SimpleVertexShader> vs;
 	std::shared_ptr<SimplePixelShader> ps;
 	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> textureSRVs;
 	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>> samplers;
 
 public:
-	Material(DirectX::XMFLOAT4 colorTint, std::shared_ptr<SimpleVertexShader> vertexShader, std::shared_ptr<SimplePixelShader> pixelShader);
+	Material(DirectX::XMFLOAT4 colorTint, float roughness, std::shared_ptr<SimpleVertexShader> vertexShader, std::shared_ptr<SimplePixelShader> pixelShader);
 
 	// Getters
 	DirectX::XMFLOAT4 GetTint();

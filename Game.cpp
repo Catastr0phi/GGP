@@ -66,6 +66,49 @@ void Game::Initialize()
 	activeCam = cameras[0];
 
 	activeCamIndex = 0;
+
+	ambientLight = XMFLOAT3(0.1f, 0.0f, 0.2f);
+
+	Light dirLight1 = {};
+	dirLight1.Type = LIGHT_TYPE_DIRECTIONAL;
+	dirLight1.Direction = XMFLOAT3(-1.0f, 1.0f, 0.0f);
+	dirLight1.Color = XMFLOAT3(1.0f, 0.3f, 0.6f);
+	dirLight1.Intensity = 1.0f;
+
+	Light dirLight2 = {};
+	dirLight2.Type = LIGHT_TYPE_DIRECTIONAL;
+	dirLight2.Direction = XMFLOAT3(0.3f, 0.0f, 0.8f);
+	dirLight2.Color = XMFLOAT3(0.1f, 1.0f, 0.1f);
+	dirLight2.Intensity = 1.0f;
+
+	Light dirLight3 = {};
+	dirLight3.Type = LIGHT_TYPE_DIRECTIONAL;
+	dirLight3.Direction = XMFLOAT3(0.0f, -1.0f, -0.2f);
+	dirLight3.Color = XMFLOAT3(0.3f, 0.3f, 0.9f);
+	dirLight3.Intensity = 1.0f;
+
+	Light spotLight = {};
+	spotLight.Type = LIGHT_TYPE_SPOT;
+	spotLight.Position = XMFLOAT3(2.0f, 3.0f, 1.0f);
+	spotLight.Direction = XMFLOAT3(0.0f, 0.2f, 1.0f);
+	spotLight.SpotInnerAngle = XM_PI/8;
+	spotLight.SpotOuterAngle = XM_PIDIV4;
+	spotLight.Color = XMFLOAT3(1.0f, 1.0f, 0.0f);
+	spotLight.Intensity = 1.0f;
+	spotLight.Range = 100.0f;
+
+	Light pointLight = {};
+	pointLight.Type = LIGHT_TYPE_POINT;
+	pointLight.Position = XMFLOAT3(2.0f, 10.0f, 3.0f);
+	pointLight.Color = XMFLOAT3(0.2f, 0.9f, 0.6f);
+	pointLight.Intensity = 1.0f;
+	pointLight.Range = 100.0f;
+
+	lights.push_back(dirLight1);
+	lights.push_back(dirLight2);
+	lights.push_back(dirLight3);
+	lights.push_back(spotLight);
+	lights.push_back(pointLight);
 }
 
 
@@ -137,23 +180,23 @@ void Game::LoadAssets()
 	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Lava.png").c_str(), 0, &lavaSRV);
 
 	// Create materials
-	std::shared_ptr<Material> mat1 = std::make_shared<Material>(purple, vs, basicPS);
+	std::shared_ptr<Material> mat1 = std::make_shared<Material>(white, 0.8f, vs, basicPS);
 	mat1->AddTextureSRV("SurfaceTexture", brickSRV);
 	mat1->AddSampler("BasicSampler", samplerState);
 	
-	std::shared_ptr<Material> mat2 = std::make_shared<Material>(red, vs, basicPS);
+	std::shared_ptr<Material> mat2 = std::make_shared<Material>(white, 0.1f, vs, basicPS);
 	mat2->AddTextureSRV("SurfaceTexture", lavaSRV);
 	mat2->AddSampler("BasicSampler", samplerState);
 	mat2->SetScale(XMFLOAT2(3, 3));
 	
-	std::shared_ptr<Material> mat3 = std::make_shared<Material>(white, vs, combinePS);
+	std::shared_ptr<Material> mat3 = std::make_shared<Material>(white, 0.2f, vs, combinePS);
 	mat3->AddTextureSRV("SurfaceTexture", lavaSRV);
 	mat3->AddTextureSRV("OverlayTexture", brickSRV);
 	mat3->AddSampler("BasicSampler", samplerState);
 	mat3->SetScale(XMFLOAT2(5, 5));
 	
-	std::shared_ptr<Material> mat4 = std::make_shared<Material>(white, vs, normalPS);
-	std::shared_ptr<Material> mat5 = std::make_shared<Material>(white, vs, customPS);
+	std::shared_ptr<Material> mat4 = std::make_shared<Material>(white, 0.2f, vs, normalPS);
+	std::shared_ptr<Material> mat5 = std::make_shared<Material>(white, 0.2f, vs, customPS);
 
 	materials.push_back(mat1);
 	materials.push_back(mat2);
@@ -338,7 +381,7 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 			// Display info and change if value changes
 			if (ImGui::TreeNode(name)) 
 			{
-				if ( ImGui::SliderFloat3("Position", posArray, -2.0f, 2.0f) )
+				if ( ImGui::SliderFloat3("Position", posArray, -20.0f, 20.0f) )
 					entities[i].GetTransform().get()->SetPosition(posArray[0], posArray[1], posArray[2]);
 				if ( ImGui::SliderFloat3("Rotation", rotArray, -4.0f, 4.0f) )
 					entities[i].GetTransform().get()->SetRotation(rotArray[0], rotArray[1], rotArray[2]);
@@ -365,6 +408,38 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 		}
 	}
 
+	// Light details
+	if (ImGui::CollapsingHeader("Lights")) 
+	{
+		for (int i = 0; i < lights.size(); i++) 
+		{
+			// Make basic name string
+			std::string nameStr = "Light " + std::to_string(i);
+			const char* name = nameStr.c_str();
+
+			// Get type as string
+			std::string typeStr;
+			switch (lights[i].Type) 
+			{
+				case (LIGHT_TYPE_DIRECTIONAL): typeStr = "Type: Directional"; break;
+				case (LIGHT_TYPE_POINT): typeStr = "Type: Point"; break;
+				case (LIGHT_TYPE_SPOT): typeStr = "Type: Spot"; break;
+			}
+
+			const char* type = typeStr.c_str();
+
+			if (ImGui::TreeNode(name)) 
+			{
+				ImGui::Text(type);
+				(ImGui::ColorEdit4("Color", &lights[i].Color.x));
+				ImGui::TreePop();
+			}
+		}
+
+
+		ImGui::ColorEdit4("Ambient Light", &ambientLight.x);
+	}
+
 	// Color and offset editors
 	if (ImGui::CollapsingHeader("Editors"))
 	{
@@ -389,7 +464,7 @@ void Game::Update(float deltaTime, float totalTime)
 	// Rotate all entities
 	for (int i = 0; i < entities.size(); i++) 
 	{
-		entities[i].GetTransform()->Rotate(0, 0.5 * deltaTime, 0);
+		entities[i].GetTransform()->Rotate(0, 0.5f * deltaTime, 0);
 	}
 }
 
@@ -413,6 +488,9 @@ void Game::Draw(float deltaTime, float totalTime)
 			entities[i].GetMat()->GetPS()->SetFloat("time", totalTime);
 			entities[i].GetMat()->GetVS()->SetFloat("time", totalTime);
 			entities[i].GetMat()->GetPS()->SetFloat3("camPosition", activeCam->GetTransform()->GetPosition());
+			entities[i].GetMat()->GetPS()->SetFloat3("ambient", ambientLight);
+			entities[i].GetMat()->GetPS()->SetData("lights", &lights[0], sizeof(Light) * (int)lights.size());
+			entities[i].GetMat()->GetPS()->SetInt("lightCount",(int)lights.size());
 
 			entities[i].Draw(activeCam);
 		}

@@ -8,6 +8,7 @@
 #include "Mesh.h"
 #include "GameEntity.h"
 #include "Camera.h"
+#include "Lights.h"
 
 class Game
 {
@@ -46,8 +47,13 @@ private:
 	std::shared_ptr<Camera> activeCam;
 	int activeCamIndex;
 
+	// Lights
+	std::vector<Light> lights;
+
 	// Additional variables
 	bool imGuiDemoVisible;
 	float color[4];
+	DirectX::XMFLOAT3 ambientLight;
+
 };
 
