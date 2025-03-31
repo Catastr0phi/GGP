@@ -33,4 +33,5 @@ public:
 	int GetVertexCount();
 	std::string GetName();
 	void Draw();
+	void CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices, int numIndices);
 };

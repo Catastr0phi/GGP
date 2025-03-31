@@ -161,6 +161,10 @@ void Game::LoadAssets()
 	// Shader Resource View for textures
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> brickSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> lavaSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cushionSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cushionNormalSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rockSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rockNormalSRV;
 
 	// Sampler state
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
@@ -178,14 +182,20 @@ void Game::LoadAssets()
 	// Load textures
 	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Bricks.png").c_str(), 0, &brickSRV);
 	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Lava.png").c_str(), 0, &lavaSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/cushion.png").c_str(), 0, &cushionSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Normals/cushion_normals.png").c_str(), 0, &cushionNormalSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/rock.png").c_str(), 0, &rockSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Normals/rock_normals.png").c_str(), 0, &rockNormalSRV);
 
 	// Create materials
 	std::shared_ptr<Material> mat1 = std::make_shared<Material>(white, 0.8f, vs, basicPS);
-	mat1->AddTextureSRV("SurfaceTexture", brickSRV);
+	mat1->AddTextureSRV("SurfaceTexture", rockSRV);
+	mat1->AddTextureSRV("NormalMap", rockNormalSRV);
 	mat1->AddSampler("BasicSampler", samplerState);
 	
 	std::shared_ptr<Material> mat2 = std::make_shared<Material>(white, 0.1f, vs, basicPS);
-	mat2->AddTextureSRV("SurfaceTexture", lavaSRV);
+	mat2->AddTextureSRV("SurfaceTexture", cushionSRV);
+	mat2->AddTextureSRV("NormalMap", cushionNormalSRV);
 	mat2->AddSampler("BasicSampler", samplerState);
 	mat2->SetScale(XMFLOAT2(3, 3));
 	

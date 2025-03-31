@@ -13,6 +13,7 @@ cbuffer ExternalData : register(b0)
 }
 
 Texture2D SurfaceTexture : register(t0); 
+texture2D NormalMap : register(t1);
 SamplerState BasicSampler : register(s0); 
 
 float Attenuate(Light light, float3 worldPos)
@@ -73,7 +74,21 @@ float4 main(VertexToPixel input) : SV_TARGET
     float2 uv = input.uv * textureScale + textureOffset;
     float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, uv) * colorTint;
     
+    // Unpack normal map
+    float3 unpackedNormal = NormalMap.Sample(BasicSampler, uv).rgb * 2 - 1;
+    unpackedNormal = normalize(unpackedNormal);
+    
+    // Normalize input vectors
     input.normal = normalize(input.normal);
+    input.tangent = normalize(input.tangent);
+    
+    // Calculate TBN
+    input.tangent = normalize(input.tangent - input.normal * dot(input.tangent, input.normal));
+    float3 B = cross(input.tangent, input.normal);
+    float3x3 TBN = float3x3(input.tangent, B, input.normal);
+
+    // Transform normal from map
+    input.normal = mul(unpackedNormal, TBN);
     
     float3 totalLight = float3(0, 0, 0);
     
