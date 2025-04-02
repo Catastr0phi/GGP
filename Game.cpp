@@ -67,7 +67,7 @@ void Game::Initialize()
 
 	activeCamIndex = 0;
 
-	ambientLight = XMFLOAT3(0.1f, 0.0f, 0.2f);
+	ambientLight = XMFLOAT3(0.2f, 0.1f, 0.2f);
 
 	Light dirLight1 = {};
 	dirLight1.Type = LIGHT_TYPE_DIRECTIONAL;
@@ -246,6 +246,9 @@ void Game::LoadAssets()
 	entities[5].GetTransform()->MoveAbsolute(2, -3, 5);
 	entities[6].GetTransform()->MoveAbsolute(-6, 0, 5);
 	entities[7].GetTransform()->MoveAbsolute(6, 0, 5);
+
+	// Load sky
+	skybox = std::make_shared<Sky>(cube, samplerState, (wchar_t*)FixPath(L"../../Assets/Textures/Skies/Clouds Pink").c_str(), (wchar_t*)FixPath(L"SkyboxPixelShader.cso").c_str(), (wchar_t*)FixPath(L"SkyboxVertexShader.cso").c_str());
 }
 
 
@@ -505,6 +508,8 @@ void Game::Draw(float deltaTime, float totalTime)
 			entities[i].Draw(activeCam);
 		}
 	}
+
+	skybox->Draw(activeCam);
 
 	ImGui::Render(); // Turns this frame’s UI into renderable triangles
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); // Draws it to the screen

@@ -9,6 +9,7 @@
 #include "GameEntity.h"
 #include "Camera.h"
 #include "Lights.h"
+#include "Sky.h"
 
 class Game
 {
@@ -49,6 +50,9 @@ private:
 
 	// Lights
 	std::vector<Light> lights;
+
+	// Sky
+	std::shared_ptr<Sky> skybox;
 
 	// Additional variables
 	bool imGuiDemoVisible;

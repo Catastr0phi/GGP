@@ -18,7 +18,7 @@ VertexToPixel_Sky main(VertexShaderInput input)
     viewNoTranslation._34 = 0;
     
     // Apply view and projection
-    output.screenPosition = mul(mul(viewNoTranslation, proj), float4(input.localPosition, 1.0f));
+    output.screenPosition = mul(mul(proj, viewNoTranslation), float4(input.localPosition, 1.0f));
     output.screenPosition.z = output.screenPosition.w;
     
     // Sampl Direction is just the position
