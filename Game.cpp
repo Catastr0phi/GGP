@@ -165,6 +165,14 @@ void Game::LoadAssets()
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cushionNormalSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rockSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rockNormalSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleAlbedoSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleRoughnessSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleMetalSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleNormalSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> floorAlbedoSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> floorRoughnessSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> floorMetalSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> floorNormalSRV;
 
 	// Sampler state
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
@@ -180,39 +188,32 @@ void Game::LoadAssets()
 	Graphics::Device.Get()->CreateSamplerState(&stateDesc, &samplerState);
 
 	// Load textures
-	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Bricks.png").c_str(), 0, &brickSRV);
-	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Lava.png").c_str(), 0, &lavaSRV);
-	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/cushion.png").c_str(), 0, &cushionSRV);
-	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Normals/cushion_normals.png").c_str(), 0, &cushionNormalSRV);
-	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/rock.png").c_str(), 0, &rockSRV);
-	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/Normals/rock_normals.png").c_str(), 0, &rockNormalSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/PBR/cobblestone_albedo.png").c_str(), 0, &cobbleAlbedoSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/PBR/cobblestone_normals.png").c_str(), 0, &cobbleNormalSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/PBR/cobblestone_metal.png").c_str(), 0, &cobbleMetalSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/PBR/cobblestone_roughness.png").c_str(), 0, &cobbleRoughnessSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/PBR/floor_albedo.png").c_str(), 0, &floorAlbedoSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/PBR/floor_normals.png").c_str(), 0, &floorNormalSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/PBR/floor_metal.png").c_str(), 0, &floorMetalSRV);
+	CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/PBR/floor_roughness.png").c_str(), 0, &floorRoughnessSRV);
 
 	// Create materials
 	std::shared_ptr<Material> mat1 = std::make_shared<Material>(white, 0.8f, vs, basicPS);
-	mat1->AddTextureSRV("SurfaceTexture", rockSRV);
-	mat1->AddTextureSRV("NormalMap", rockNormalSRV);
+	mat1->AddTextureSRV("Albedo", cobbleAlbedoSRV);
+	mat1->AddTextureSRV("NormalMap", cobbleNormalSRV);
+	mat1->AddTextureSRV("RoughnessMap", cobbleRoughnessSRV);
+	mat1->AddTextureSRV("MetalnessMap", cobbleMetalSRV);
 	mat1->AddSampler("BasicSampler", samplerState);
+	materials.push_back(mat1);
 	
 	std::shared_ptr<Material> mat2 = std::make_shared<Material>(white, 0.1f, vs, basicPS);
-	mat2->AddTextureSRV("SurfaceTexture", cushionSRV);
-	mat2->AddTextureSRV("NormalMap", cushionNormalSRV);
+	mat2->AddTextureSRV("Albedo", floorAlbedoSRV);
+	mat2->AddTextureSRV("NormalMap", floorNormalSRV);
+	mat2->AddTextureSRV("RoughnessMap", floorRoughnessSRV);
+	mat2->AddTextureSRV("MetalnessMap", floorMetalSRV);
 	mat2->AddSampler("BasicSampler", samplerState);
-	mat2->SetScale(XMFLOAT2(3, 3));
-	
-	std::shared_ptr<Material> mat3 = std::make_shared<Material>(white, 0.2f, vs, combinePS);
-	mat3->AddTextureSRV("SurfaceTexture", lavaSRV);
-	mat3->AddTextureSRV("OverlayTexture", brickSRV);
-	mat3->AddSampler("BasicSampler", samplerState);
-	mat3->SetScale(XMFLOAT2(5, 5));
-	
-	std::shared_ptr<Material> mat4 = std::make_shared<Material>(white, 0.2f, vs, normalPS);
-	std::shared_ptr<Material> mat5 = std::make_shared<Material>(white, 0.2f, vs, customPS);
-
-	materials.push_back(mat1);
+	//mat2->SetScale(XMFLOAT2(3, 3));
 	materials.push_back(mat2);
-	materials.push_back(mat3);
-	materials.push_back(mat4);
-	materials.push_back(mat5);
 
 	// Create meshes
 	std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cube.obj").c_str(), "Cube");
@@ -230,22 +231,10 @@ void Game::LoadAssets()
 	// Create entities
 	entities.push_back(GameEntity(cube, mat1));
 	entities.push_back(GameEntity(sphere, mat2));
-	entities.push_back(GameEntity(sphere, mat3));
-	entities.push_back(GameEntity(torus, mat3));
-	entities.push_back(GameEntity(cylinder, mat4));
-	entities.push_back(GameEntity(helix, mat4));
-	entities.push_back(GameEntity(helix, mat5));
-	entities.push_back(GameEntity(torus, mat5));
 
 	// Move entities into starting positions
-	entities[0].GetTransform()->MoveAbsolute(-2, 3, 5);
-	entities[1].GetTransform()->MoveAbsolute(2, 3, 5);
-	entities[2].GetTransform()->MoveAbsolute(-2, 0, 5);
-	entities[3].GetTransform()->MoveAbsolute(2, 0, 5);
-	entities[4].GetTransform()->MoveAbsolute(-2, -3, 5);
-	entities[5].GetTransform()->MoveAbsolute(2, -3, 5);
-	entities[6].GetTransform()->MoveAbsolute(-6, 0, 5);
-	entities[7].GetTransform()->MoveAbsolute(6, 0, 5);
+	entities[0].GetTransform()->MoveAbsolute(-2, 0, 5);
+	entities[1].GetTransform()->MoveAbsolute(2, 0, 5);
 
 	// Load sky
 	skybox = std::make_shared<Sky>(cube, samplerState, (wchar_t*)FixPath(L"../../Assets/Textures/Skies/Clouds Pink").c_str(), (wchar_t*)FixPath(L"SkyboxPixelShader.cso").c_str(), (wchar_t*)FixPath(L"SkyboxVertexShader.cso").c_str());

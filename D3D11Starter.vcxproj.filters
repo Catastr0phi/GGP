@@ -181,5 +181,8 @@
     <None Include="ShaderStructs.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="PBRFuncs.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
