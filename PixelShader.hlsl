@@ -17,7 +17,9 @@ Texture2D Albedo : register(t0);
 Texture2D NormalMap : register(t1);
 Texture2D RoughnessMap : register(t2);
 Texture2D MetalnessMap : register(t3);
+Texture2D ShadowMap : register(t4);
 SamplerState BasicSampler : register(s0);
+SamplerComparisonState ShadowSampler : register(s1);
 
 float Attenuate(Light light, float3 worldPos)
 {
@@ -29,12 +31,12 @@ float Attenuate(Light light, float3 worldPos)
 float3 directionalLight(Light light, float3 normal, float3 V, float3 surfaceColor, float3 direction, float roughness, float3 specColor, float metalness)
 {
     // Diffuse calculation
-    float3 diffuse = DiffusePBR(normal, direction);
+    float3 diffuse = DiffusePBR(normal, -direction);
     
     // Specular calcualtion
     float3 R = reflect(normalize(direction), normal);
     float3 F;
-    float3 specular = MicrofacetBRDF(normal, direction, V, roughness, specColor, F);
+    float3 specular = MicrofacetBRDF(normal, -direction, V, roughness, specColor, F);
     
     // Calculate diffuse with energy conservation, including cutting diffuse for metals
     float3 balancedDiff = DiffuseEnergyConserve(diffuse, F, metalness);
@@ -75,6 +77,20 @@ float3 spotLight(Light light, float3 normal, float3 V, float3 surfaceColor, floa
 
 float4 main(VertexToPixel input) : SV_TARGET
 {   
+    // Perform the perspective divide (divide by W) ourselves
+    input.shadowMapPos /= input.shadowMapPos.w;
+    // Convert the normalized device coordinates to UVs for sampling
+    float2 shadowUV = input.shadowMapPos.xy * 0.5f + 0.5f;
+    shadowUV.y = 1 - shadowUV.y; // Flip the Y
+    // Grab the distances we need: light-to-pixel and closest-surface
+    float distToLight = input.shadowMapPos.z;
+    // Get a ratio of comparison results using SampleCmpLevelZero()
+    float shadowAmount = ShadowMap.SampleCmpLevelZero(
+        ShadowSampler,
+        shadowUV,
+        distToLight).r;
+    
+    
     float2 uv = input.uv * textureScale + textureOffset;
     float4 surfaceColor = pow(Albedo.Sample(BasicSampler, uv), 2.2f) * colorTint;
     
@@ -108,18 +124,27 @@ float4 main(VertexToPixel input) : SV_TARGET
     
     for (int i = 0; i < lightCount; i++)
     {
+        float3 lightResult;
+        
         switch (lights[i].Type)
         {
             case LIGHT_TYPE_DIRECTIONAL:
-                totalLight += directionalLight(lights[i], input.normal, V, surfaceColor.xyz, lights[i].Direction, roughness, specularColor, metalness);
+                lightResult = directionalLight(lights[i], input.normal, V, surfaceColor.xyz, lights[i].Direction, roughness, specularColor, metalness);
                 break;
             case LIGHT_TYPE_POINT:
-                totalLight += pointLight(lights[i], input.normal, V, surfaceColor.xyz, input.worldPos, roughness, specularColor, metalness);
+                lightResult = pointLight(lights[i], input.normal, V, surfaceColor.xyz, input.worldPos, roughness, specularColor, metalness);
                 break;
             case LIGHT_TYPE_SPOT:
-                totalLight += spotLight(lights[i], input.normal, V, surfaceColor.xyz, input.worldPos, roughness, specularColor, metalness);
+                lightResult = spotLight(lights[i], input.normal, V, surfaceColor.xyz, input.worldPos, roughness, specularColor, metalness);
                 break;
         }
+        
+        if (i == 0)
+        {
+           lightResult *= shadowAmount;
+        }
+        
+        totalLight += lightResult;
     }
 
     	

@@ -54,6 +54,15 @@ private:
 	// Sky
 	std::shared_ptr<Sky> skybox;
 
+	// Shadow variables
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> shadowDSV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> shadowSRV;
+	DirectX::XMFLOAT4X4 lightViewMatrix;
+	DirectX::XMFLOAT4X4 lightProjectionMatrix;
+	std::shared_ptr<SimpleVertexShader> shadowVS;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> shadowSampler;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> shadowRasterizer;
+
 	// Additional variables
 	bool imGuiDemoVisible;
 	float color[4];

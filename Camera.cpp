@@ -24,14 +24,17 @@ void Camera::Update(float dt)
     // Input
     float speed = dt * movementSpeed;
     float lookSpeed = dt * mouseLookSpeed;
+    float multiplier;
 
     // Keyboard
-    if (Input::KeyDown('W')) { transform->MoveRelative(0, 0, speed); }
-    if (Input::KeyDown('A')) { transform->MoveRelative(-speed, 0, 0); }
-    if (Input::KeyDown('S')) { transform->MoveRelative(0, 0, -speed); }
-    if (Input::KeyDown('D')) { transform->MoveRelative(speed, 0, 0); }
-    if (Input::KeyDown(' ')) { transform->MoveAbsolute(0, speed, 0); }
-    if (Input::KeyDown(VK_SHIFT)) { transform->MoveAbsolute(0, -speed, 0); }
+    if (Input::KeyDown(VK_CONTROL)) { multiplier = 3; }
+    else { multiplier = 1; }
+    if (Input::KeyDown('W')) { transform->MoveRelative(0, 0, speed * multiplier); }
+    if (Input::KeyDown('A')) { transform->MoveRelative(-speed * multiplier, 0, 0); }
+    if (Input::KeyDown('S')) { transform->MoveRelative(0, 0, -speed * multiplier); }
+    if (Input::KeyDown('D')) { transform->MoveRelative(speed * multiplier, 0, 0); }
+    if (Input::KeyDown(' ')) { transform->MoveAbsolute(0, speed * multiplier, 0); }
+    if (Input::KeyDown(VK_SHIFT)) { transform->MoveAbsolute(0, -speed * multiplier, 0); }
 
     // Mouse
     if (Input::MouseLeftDown()) 
