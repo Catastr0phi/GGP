@@ -30,10 +30,15 @@ private:
 
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
 	void LoadAssets();
+	void LightSetup();
+	void ShadowSetup();
 
 	// ImGui helper functions
 	void UpdateImGui(float deltaTime);
 	void UpdateInspector(float deltaTime, float totalTime);
+
+	// Draw helpers
+	void DrawShadowMap();
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
@@ -62,11 +67,10 @@ private:
 	std::shared_ptr<SimpleVertexShader> shadowVS;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> shadowSampler;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> shadowRasterizer;
+	int shadowMapSize;
 
 	// Additional variables
 	bool imGuiDemoVisible;
 	float color[4];
-	DirectX::XMFLOAT3 ambientLight;
-
 };
 

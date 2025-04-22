@@ -8,8 +8,6 @@ cbuffer ExternalData : register(b0)
     float2 textureScale;
     float2 textureOffset;
     float3 camPosition;
-    float roughness;
-    float3 ambient;
     int lightCount;
 }
 
