@@ -122,7 +122,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     
     for (int i = 0; i < lightCount; i++)
     {
-        float3 lightResult;
+        float3 lightResult = 0;
         
         switch (lights[i].Type)
         {

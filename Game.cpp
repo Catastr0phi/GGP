@@ -806,8 +806,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	blurPS->SetShaderResourceView("Pixels", blurSRV.Get());
 	blurPS->SetSamplerState("ClampSampler", ppSampler.Get());
 	blurPS->SetInt("blurRadius", blurRadius);
-	blurPS->SetFloat("pixelWidth", 1.0/Window::Width());
-	blurPS->SetFloat("pixelHeight", 1.0/Window::Height());
+	blurPS->SetFloat("pixelWidth", (float)1.0/Window::Width());
+	blurPS->SetFloat("pixelHeight", (float)1.0/Window::Height());
 	blurPS->CopyAllBufferData();
 	Graphics::Context->Draw(3, 0); // Draw exactly 3 vertices (one triangle)
 
@@ -818,8 +818,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	ditherPS->SetShaderResourceView("Pixels", ditherSRV.Get());
 	ditherPS->SetSamplerState("ClampSampler", ppSampler.Get());
 	ditherPS->SetInt("pixelSize", pixelSize);
-	ditherPS->SetFloat("width", Window::Width());
-	ditherPS->SetFloat("height", Window::Height());
+	ditherPS->SetFloat("width", (float)Window::Width());
+	ditherPS->SetFloat("height", (float)Window::Height());
 	ditherPS->CopyAllBufferData();
 	Graphics::Context->Draw(3, 0); // Draw exactly 3 vertices (one triangle)
 
