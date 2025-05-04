@@ -32,6 +32,7 @@ void Game::Initialize()
 	LoadAssets();
 	LightSetup();
 	ShadowSetup();
+	PostProcessSetup();
 
 	// Set initial graphics API state
 	//  - These settings persist until we change them
@@ -336,6 +337,103 @@ void Game::ShadowSetup() {
 	Graphics::Device->CreateSamplerState(&shadowSampDesc, &shadowSampler);
 }
 
+void Game::PostProcessSetup() 
+{
+	// Set shaders
+	ppVS = std::make_shared<SimpleVertexShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"PostProcessVS.cso").c_str());
+
+	blurPS = std::make_shared<SimplePixelShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"BlurPostProcess.cso").c_str());
+
+	ditherPS = std::make_shared<SimplePixelShader>(
+		Graphics::Device, Graphics::Context, FixPath(L"DitherPostProcess.cso").c_str());
+
+	// Sampler state for post processing
+	D3D11_SAMPLER_DESC ppSampDesc = {};
+	ppSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ppSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ppSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ppSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	ppSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	Graphics::Device->CreateSamplerState(&ppSampDesc, ppSampler.GetAddressOf());
+
+	// Blur
+	// Describe the texture we're creating
+	D3D11_TEXTURE2D_DESC blurTextureDesc = {};
+	blurTextureDesc.Width = Window::Width();
+	blurTextureDesc.Height = Window::Height();
+	blurTextureDesc.ArraySize = 1;
+	blurTextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	blurTextureDesc.CPUAccessFlags = 0;
+	blurTextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	blurTextureDesc.MipLevels = 1;
+	blurTextureDesc.MiscFlags = 0;
+	blurTextureDesc.SampleDesc.Count = 1;
+	blurTextureDesc.SampleDesc.Quality = 0;
+	blurTextureDesc.Usage = D3D11_USAGE_DEFAULT;
+	// Create the resource (no need to track it after the views are created below)
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> blurTexture;
+	Graphics::Device->CreateTexture2D(&blurTextureDesc, 0, blurTexture.GetAddressOf());
+
+	// Create the Render Target View
+	D3D11_RENDER_TARGET_VIEW_DESC blurRTVDesc = {};
+	blurRTVDesc.Format = blurTextureDesc.Format;
+	blurRTVDesc.Texture2D.MipSlice = 0;
+	blurRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	Graphics::Device->CreateRenderTargetView(
+		blurTexture.Get(),
+		&blurRTVDesc,
+		blurRTV.ReleaseAndGetAddressOf());
+	// Create the Shader Resource View
+	// By passing it a null description for the SRV, we
+	// get a "default" SRV that has access to the entire resource
+	Graphics::Device->CreateShaderResourceView(
+		blurTexture.Get(),
+		0,
+		blurSRV.ReleaseAndGetAddressOf());
+
+	// Start with no blur
+	blurRadius = 0;
+
+	// Dither
+	D3D11_TEXTURE2D_DESC ditherTextureDesc = {};
+	ditherTextureDesc.Width = Window::Width();
+	ditherTextureDesc.Height = Window::Height();
+	ditherTextureDesc.ArraySize = 1;
+	ditherTextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	ditherTextureDesc.CPUAccessFlags = 0;
+	ditherTextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	ditherTextureDesc.MipLevels = 1;
+	ditherTextureDesc.MiscFlags = 0;
+	ditherTextureDesc.SampleDesc.Count = 1;
+	ditherTextureDesc.SampleDesc.Quality = 0;
+	ditherTextureDesc.Usage = D3D11_USAGE_DEFAULT;
+	// Create the resource (no need to track it after the views are created below)
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> ditherTexture;
+	Graphics::Device->CreateTexture2D(&ditherTextureDesc, 0, ditherTexture.GetAddressOf());
+
+	// Create the Render Target View
+	D3D11_RENDER_TARGET_VIEW_DESC ditherRTVDesc = {};
+	ditherRTVDesc.Format = blurTextureDesc.Format;
+	ditherRTVDesc.Texture2D.MipSlice = 0;
+	ditherRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	Graphics::Device->CreateRenderTargetView(
+		ditherTexture.Get(),
+		&ditherRTVDesc,
+		ditherRTV.ReleaseAndGetAddressOf());
+	// Create the Shader Resource View
+	// By passing it a null description for the SRV, we
+	// get a "default" SRV that has access to the entire resource
+	Graphics::Device->CreateShaderResourceView(
+		ditherTexture.Get(),
+		0,
+		ditherSRV.ReleaseAndGetAddressOf());
+
+	// Start with no pixelization
+	pixelSize = 1;
+}
+
 
 // --------------------------------------------------------
 // Handle resizing to match the new window size
@@ -352,6 +450,86 @@ void Game::OnResize()
 			cam->UpdateProjectionMatrix(Window::AspectRatio());
 		}
 	}
+
+	if (Graphics::Device != NULL)
+	ResetPostProcess();
+}
+
+void Game::ResetPostProcess() 
+{
+	blurRTV.Reset();
+	blurSRV.Reset();
+	ditherRTV.Reset();
+	ditherSRV.Reset();
+
+	// Blur
+    // Describe the texture we're creating
+	D3D11_TEXTURE2D_DESC blurTextureDesc = {};
+	blurTextureDesc.Width = Window::Width();
+	blurTextureDesc.Height = Window::Height();
+	blurTextureDesc.ArraySize = 1;
+	blurTextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	blurTextureDesc.CPUAccessFlags = 0;
+	blurTextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	blurTextureDesc.MipLevels = 1;
+	blurTextureDesc.MiscFlags = 0;
+	blurTextureDesc.SampleDesc.Count = 1;
+	blurTextureDesc.SampleDesc.Quality = 0;
+	blurTextureDesc.Usage = D3D11_USAGE_DEFAULT;
+	// Create the resource (no need to track it after the views are created below)
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> blurTexture;
+	Graphics::Device->CreateTexture2D(&blurTextureDesc, 0, blurTexture.GetAddressOf());
+
+	// Create the Render Target View
+	D3D11_RENDER_TARGET_VIEW_DESC blurRTVDesc = {};
+	blurRTVDesc.Format = blurTextureDesc.Format;
+	blurRTVDesc.Texture2D.MipSlice = 0;
+	blurRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	Graphics::Device->CreateRenderTargetView(
+		blurTexture.Get(),
+		&blurRTVDesc,
+		blurRTV.ReleaseAndGetAddressOf());
+	// Create the Shader Resource View
+	// By passing it a null description for the SRV, we
+	// get a "default" SRV that has access to the entire resource
+	Graphics::Device->CreateShaderResourceView(
+		blurTexture.Get(),
+		0,
+		blurSRV.ReleaseAndGetAddressOf());
+
+	// Dither
+	D3D11_TEXTURE2D_DESC ditherTextureDesc = {};
+	ditherTextureDesc.Width = Window::Width();
+	ditherTextureDesc.Height = Window::Height();
+	ditherTextureDesc.ArraySize = 1;
+	ditherTextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	ditherTextureDesc.CPUAccessFlags = 0;
+	ditherTextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	ditherTextureDesc.MipLevels = 1;
+	ditherTextureDesc.MiscFlags = 0;
+	ditherTextureDesc.SampleDesc.Count = 1;
+	ditherTextureDesc.SampleDesc.Quality = 0;
+	ditherTextureDesc.Usage = D3D11_USAGE_DEFAULT;
+	// Create the resource (no need to track it after the views are created below)
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> ditherTexture;
+	Graphics::Device->CreateTexture2D(&ditherTextureDesc, 0, ditherTexture.GetAddressOf());
+
+	// Create the Render Target View
+	D3D11_RENDER_TARGET_VIEW_DESC ditherRTVDesc = {};
+	ditherRTVDesc.Format = blurTextureDesc.Format;
+	ditherRTVDesc.Texture2D.MipSlice = 0;
+	ditherRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	Graphics::Device->CreateRenderTargetView(
+		ditherTexture.Get(),
+		&ditherRTVDesc,
+		ditherRTV.ReleaseAndGetAddressOf());
+	// Create the Shader Resource View
+	// By passing it a null description for the SRV, we
+	// get a "default" SRV that has access to the entire resource
+	Graphics::Device->CreateShaderResourceView(
+		ditherTexture.Get(),
+		0,
+		ditherSRV.ReleaseAndGetAddressOf());
 }
 
 
@@ -535,6 +713,22 @@ void Game::UpdateInspector(float deltaTime, float totalTime) {
 		}
 	}
 
+	// Post Process details
+	if (ImGui::CollapsingHeader("Post Process")) 
+	{
+		if (ImGui::TreeNode("Blur")) 
+		{
+			ImGui::SliderInt("Blur Radius", &blurRadius, 0, 5);
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("Dither/Pixelation"))
+		{
+			ImGui::SliderInt("Pixel Size", &pixelSize, 1, 10);
+			ImGui::TreePop();
+		}
+	}
+
 	// Color and offset editors
 	if (ImGui::CollapsingHeader("Editors"))
 	{
@@ -578,6 +772,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	{
 		Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	color);
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		Graphics::Context->ClearRenderTargetView(blurRTV.Get(), color);
+		Graphics::Context->OMSetRenderTargets(1, blurRTV.GetAddressOf(), Graphics::DepthBufferDSV.Get());
 	}
 
 	// DRAW geometry
@@ -599,6 +795,34 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	skybox->Draw(activeCam);
+
+	// Now move to dither RTV
+	Graphics::Context->OMSetRenderTargets(1, ditherRTV.GetAddressOf(), 0);
+
+	// Activate shaders and bind resources
+	// Also set any required cbuffer data
+	ppVS->SetShader();
+	blurPS->SetShader();
+	blurPS->SetShaderResourceView("Pixels", blurSRV.Get());
+	blurPS->SetSamplerState("ClampSampler", ppSampler.Get());
+	blurPS->SetInt("blurRadius", blurRadius);
+	blurPS->SetFloat("pixelWidth", 1.0/Window::Width());
+	blurPS->SetFloat("pixelHeight", 1.0/Window::Height());
+	blurPS->CopyAllBufferData();
+	Graphics::Context->Draw(3, 0); // Draw exactly 3 vertices (one triangle)
+
+	// Move to back buffer
+	Graphics::Context->OMSetRenderTargets(1, Graphics::BackBufferRTV.GetAddressOf(), 0);
+
+	ditherPS->SetShader();
+	ditherPS->SetShaderResourceView("Pixels", ditherSRV.Get());
+	ditherPS->SetSamplerState("ClampSampler", ppSampler.Get());
+	ditherPS->SetInt("pixelSize", pixelSize);
+	ditherPS->SetFloat("width", Window::Width());
+	ditherPS->SetFloat("height", Window::Height());
+	ditherPS->CopyAllBufferData();
+	Graphics::Context->Draw(3, 0); // Draw exactly 3 vertices (one triangle)
+
 
 	ImGui::Render(); // Turns this frame’s UI into renderable triangles
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); // Draws it to the screen

@@ -32,6 +32,10 @@ private:
 	void LoadAssets();
 	void LightSetup();
 	void ShadowSetup();
+	void PostProcessSetup();
+
+	// Post-Process reset
+	void ResetPostProcess();
 
 	// ImGui helper functions
 	void UpdateImGui(float deltaTime);
@@ -68,6 +72,25 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> shadowSampler;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> shadowRasterizer;
 	int shadowMapSize;
+
+	// Post Process
+	// Resources that are shared among all post processes
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> ppSampler;
+	std::shared_ptr<SimpleVertexShader> ppVS;
+
+	// Resources that are tied to a particular post process
+	// 
+	// Blur
+	std::shared_ptr<SimplePixelShader> blurPS;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> blurRTV; // For rendering
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> blurSRV; // For sampling
+	int blurRadius;
+
+	// Pixel/Dither
+	std::shared_ptr<SimplePixelShader> ditherPS;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> ditherRTV; 
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ditherSRV; 
+	int pixelSize;
 
 	// Additional variables
 	bool imGuiDemoVisible;
